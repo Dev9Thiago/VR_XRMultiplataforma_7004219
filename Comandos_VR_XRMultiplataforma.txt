@@ -1,0 +1,66 @@
+VR_XRMultiplataforma - Comandos utiles
+
+Ruta del proyecto
+
+C:- unimilitar.edu.co_XRMultiplataforma
+
+1. Ir a la carpeta del proyecto
+
+cd “C:- unimilitar.edu.co_XRMultiplataforma”
+
+2. Comprobar la carpeta actual
+
+Get-Location
+
+3. Mostrar los archivos
+
+dir
+
+Debe aparecer index.html directamente en la carpeta del proyecto.
+
+4. Iniciar el servidor local
+
+python -m http.server 8000
+
+La terminal queda ocupada esperando solicitudes. Esto es normal.
+
+5. Abrir el proyecto
+
+http://localhost:8000
+
+Alternativa: http://127.0.0.1:8000
+
+6. Iniciar el servidor indicando directamente la carpeta (recomendado)
+
+python -m http.server 8000 –directory “C:-
+unimilitar.edu.co_XRMultiplataforma”
+
+Este comando evita servir accidentalmente la carpeta padre.
+
+7. Detener el servidor
+
+Ctrl + C
+
+8. Si aparece “Directory listing for /”
+
+El servidor fue iniciado desde una carpeta que no contiene directamente
+index.html.
+
+Solucion: cd “C:- unimilitar.edu.co_XRMultiplataforma” python -m
+http.server 8000
+
+O usar directamente el comando recomendado del punto 6.
+
+9. Mensaje 404 de favicon.ico
+
+Un mensaje como:
+
+GET /favicon.ico HTTP/1.1 404
+
+no afecta el proyecto. El navegador simplemente solicito un icono de
+pestana que no existe.
+
+Nota
+
+Este archivo se ira ampliando con los comandos relevantes de desarrollo,
+pruebas y despliegue del proyecto.

@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="
+            width=device-width,
+            initial-scale=1.0,
+            maximum-scale=1.0,
+            user-scalable=no
+        "
+    >
+
+    <title>
+        XR Industrial Cell
+    </title>
+
+
+    <!-- ===================================================== -->
+    <!-- A-FRAME -->
+    <!-- ===================================================== -->
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/aframe@1.4.1/dist/aframe-master.min.js">
+    </script>
+
+
+    <!-- ===================================================== -->
+    <!-- PROJECT SCRIPTS -->
+    <!-- ===================================================== -->
+
+    <script src="scripts/conveyor.js"></script>
+
+    <script src="scripts/mobile-sensors.js"></script>
+
+
+    <!-- ===================================================== -->
+    <!-- MOBILE SENSOR HUD STYLE -->
+    <!-- ===================================================== -->
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+        }
+
+
+        /* =================================================== */
+        /* SENSOR TOGGLE */
+        /* =================================================== */
+
+        #sensor-toggle {
+
+            position: fixed;
+
+            top: 12px;
+            right: 12px;
+
+            z-index: 10000;
+
+            padding: 10px 14px;
+
+            border: none;
+
+            border-radius: 7px;
+
+            background:
+                rgba(
+                    20,
+                    20,
+                    20,
+                    0.85
+                );
+
+            color: white;
+
+            font-size: 14px;
+
+            cursor: pointer;
+
+        }
+
+
+        /* =================================================== */
+        /* SENSOR PANEL */
+        /* =================================================== */
+
+        #sensor-panel {
+
+            position: fixed;
+
+            top: 60px;
+            right: 12px;
+
+            z-index: 9999;
+
+            width: 265px;
+
+            max-height:
+                calc(
+                    100vh - 80px
+                );
+
+            overflow-y: auto;
+
+            padding: 12px;
+
+            border-radius: 8px;
+
+            background:
+                rgba(
+                    10,
+                    10,
+                    10,
+                    0.82
+                );
+
+            color: white;
+
+            font-family:
+                Consolas,
+                monospace;
+
+            font-size: 12px;
+
+            display: none;
+
+            backdrop-filter:
+                blur(4px);
+
+        }
+
+
+        #sensor-panel.visible {
+            display: block;
+        }
+
+
+        #sensor-panel h3 {
+
+            margin:
+                0 0 10px 0;
+
+            font-size: 14px;
+
+        }
+
+
+        #sensor-panel h4 {
+
+            margin:
+                12px 0 4px 0;
+
+            font-size: 12px;
+
+            color: #DDDDDD;
+
+        }
+
+
+        .sensor-row {
+
+            display: flex;
+
+            justify-content:
+                space-between;
+
+            margin: 3px 0;
+
+        }
+
+
+        .sensor-value {
+            font-weight: bold;
+        }
+
+
+        #sensor-status {
+
+            margin-top: 10px;
+
+            font-size: 11px;
+
+            color: #AAAAAA;
+
+        }
+
+
+        #sensor-permission {
+
+            width: 100%;
+
+            margin-top: 10px;
+
+            padding: 8px;
+
+            border: none;
+
+            border-radius: 5px;
+
+            background: #1976D2;
+
+            color: white;
+
+            cursor: pointer;
+
+        }
+
+
+        /* =================================================== */
+        /* PHONE UI */
+        /* =================================================== */
+
+        @media
+        (
+            max-width: 900px
+        ) {
+
+            #sensor-toggle {
+
+                top: 8px;
+                right: 8px;
+
+                padding: 8px 11px;
+
+                font-size: 12px;
+
+            }
+
+
+            #sensor-panel {
+
+                top: 48px;
+                right: 8px;
+
+                width: 225px;
+
+                font-size: 11px;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- ========================================================= -->
+<!-- SENSOR HUD -->
+<!-- ========================================================= -->
+
+<button
+    id="sensor-toggle"
+    type="button"
+>
+    Show Sensors
+</button>
+
+
+<div id="sensor-panel">
+
+    <h3>
+        Smartphone IMU
+    </h3>
+
+
+    <!-- ===================================================== -->
+    <!-- ORIENTATION -->
+    <!-- ===================================================== -->
+
+    <h4>
+        Orientation [deg]
+    </h4>
+
+    <div class="sensor-row">
+        <span>Alpha</span>
+        <span
+            id="orientation-alpha"
+            class="sensor-value"
+        >
+            --
+        </span>
+    </div>
+
+    <div class="sensor-row">
+        <span>Beta</span>
+        <span
+            id="orientation-beta"
+            class="sensor-value"
+        >
+            --
+        </span>
+    </div>
+
+    <div class="sensor-row">
+        <span>Gamma</span>
+        <span
+            id="orientation-gamma"
+            class="sensor-value"
+        >
+            --
+        </span>
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- LINEAR ACCELERATION -->
+    <!-- ===================================================== -->
+
+    <h4>
+        Acceleration [m/s²]
+    </h4>
+
+    <div class="sensor-row">
+        <span>X</span>
+        <span
+            id="acceleration-x"
+            class="sensor-value"
+        >
+            --
+        </span>
+    </div>
+
+    <div class="sensor-row">
+        <span>Y</span>
+        <span
+            id="acceleration-y"
+            class="sensor-value"
+        >
+            --
+        </span>
+    </div>
+
+    <div class="sensor-row">
+        <span>Z</span>
+        <span
+            id="acceleration-z"
+            class="sensor-value"
+        >
+            --
+        </span>
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- ACCELERATION + GRAVITY -->
+    <!-- ===================================================== -->
+
+    <h4>
+        Acceleration + gravity [m/s²]
+    </h4>
+
+    <div class="sensor-row">
+        <span>X</span>
+        <span
+            id="gravity-x"
+            class="sensor-value"
+        >
+            --
+        </span>
+    </div>
+
+    <div class="sensor-row">
+        <span>Y</span>
+        <span
+            id="gravity-y"
+            class="sensor-value"
+        >
+            --
+        </span>
+    </div>
+
+    <div class="sensor-row">
+        <span>Z</span>
+        <span
+            id="gravity-z"
+            class="sensor-value"
+        >
+            --
+        </span>
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- ROTATION RATE -->
+    <!-- ===================================================== -->
+
+    <h4>
+        Rotation rate [deg/s]
+    </h4>
+
+    <div class="sensor-row">
+        <span>Alpha</span>
+        <span
+            id="rotation-alpha"
+            class="sensor-value"
+        >
+            --
+        </span>
+    </div>
+
+    <div class="sensor-row">
+        <span>Beta</span>
+        <span
+            id="rotation-beta"
+            class="sensor-value"
+        >
+            --
+        </span>
+    </div>
+
+    <div class="sensor-row">
+        <span>Gamma</span>
+        <span
+            id="rotation-gamma"
+            class="sensor-value"
+        >
+            --
+        </span>
+    </div>
+
+
+    <div id="sensor-status">
+        Waiting for sensors...
+    </div>
+
+
+    <button
+        id="sensor-permission"
+        type="button"
+    >
+        Enable Motion Sensors
+    </button>
+
+</div>
+
+
+
+<!-- ========================================================= -->
+<!-- A-FRAME SCENE -->
+<!-- ========================================================= -->
+
+<a-scene
+
+    mobile-platform
+
+    background="
+        color: #ECECEC
+    "
+
+    renderer="
+        colorManagement: true;
+        physicallyCorrectLights: true
+    "
+>
+
+
+    <!-- ===================================================== -->
+    <!-- LIGHTING -->
+    <!-- ===================================================== -->
+
+    <a-light
+        type="ambient"
+        color="#FFFFFF"
+        intensity="0.7">
+    </a-light>
+
+
+    <a-light
+        type="directional"
+        color="#FFFFFF"
+        intensity="0.8"
+        position="3 6 2">
+    </a-light>
+
+
+    <!-- ===================================================== -->
+    <!-- FLOOR -->
+    <!-- ===================================================== -->
+
+    <a-plane
+
+        position="0 0 -5"
+
+        rotation="-90 0 0"
+
+        width="14"
+        height="12"
+
+        color="#707070"
+
+        roughness="0.9">
+
+    </a-plane>
+
+
+    <!-- ===================================================== -->
+    <!-- INDUSTRIAL CELL -->
+    <!-- ===================================================== -->
+
+    <a-entity
+
+        id="industrial-cell"
+
+        position="0 0 -5"
+
+        scale="1.35 1.35 1.35"
+
+        industrial-cycle="
+            speed: 0.6;
+            minX: -2.4;
+            maxX: 2.4;
+            stationX: 0;
+            lowerDistance: 0.28;
+            lowerDuration: 700;
+            processingDuration: 1100;
+            raiseDuration: 700;
+        "
+    >
+
+
+        <!-- ================================================= -->
+        <!-- CONVEYOR -->
+        <!-- ================================================= -->
+
+        <a-box
+            position="0 0.75 0"
+            width="5.5"
+            height="0.25"
+            depth="1.2"
+            color="#3B3B3B">
+        </a-box>
+
+
+        <a-box
+            position="0 0.91 0"
+            width="5.3"
+            height="0.08"
+            depth="1"
+            color="#181818">
+        </a-box>
+
+
+        <!-- ================================================= -->
+        <!-- SUPPORT LEGS -->
+        <!-- ================================================= -->
+
+        <a-box
+            position="-2.2 0.35 -0.45"
+            width="0.18"
+            height="0.7"
+            depth="0.18"
+            color="#B0B0B0">
+        </a-box>
+
+        <a-box
+            position="-2.2 0.35 0.45"
+            width="0.18"
+            height="0.7"
+            depth="0.18"
+            color="#B0B0B0">
+        </a-box>
+
+        <a-box
+            position="2.2 0.35 -0.45"
+            width="0.18"
+            height="0.7"
+            depth="0.18"
+            color="#B0B0B0">
+        </a-box>
+
+        <a-box
+            position="2.2 0.35 0.45"
+            width="0.18"
+            height="0.7"
+            depth="0.18"
+            color="#B0B0B0">
+        </a-box>
+
+
+        <!-- ================================================= -->
+        <!-- END ROLLERS -->
+        <!-- ================================================= -->
+
+        <a-cylinder
+            position="-2.72 0.95 0"
+            rotation="90 0 0"
+            radius="0.11"
+            height="0.92"
+            color="#8A8A8A">
+        </a-cylinder>
+
+
+        <a-cylinder
+            position="2.72 0.95 0"
+            rotation="90 0 0"
+            radius="0.11"
+            height="0.92"
+            color="#8A8A8A">
+        </a-cylinder>
+
+
+        <!-- ================================================= -->
+        <!-- WORKPIECES -->
+        <!-- ================================================= -->
+
+        <a-box
+            id="workpiece-1"
+            class="workpiece"
+            position="-1.5 1.15 0"
+            width="0.55"
+            height="0.4"
+            depth="0.55"
+            color="#FF8C42">
+        </a-box>
+
+
+        <a-box
+            id="workpiece-2"
+            class="workpiece"
+            position="0 1.15 0"
+            width="0.55"
+            height="0.4"
+            depth="0.55"
+            color="#FF8C42">
+        </a-box>
+
+
+        <a-box
+            id="workpiece-3"
+            class="workpiece"
+            position="1.5 1.15 0"
+            width="0.55"
+            height="0.4"
+            depth="0.55"
+            color="#FF8C42">
+        </a-box>
+
+
+        <!-- ================================================= -->
+        <!-- PROCESSING GANTRY -->
+        <!-- ================================================= -->
+
+        <a-entity
+            id="processing-station"
+            position="0 0 0"
+            rotation="0 90 0"
+        >
+
+            <a-box
+                position="-0.9 1.9 0"
+                width="0.22"
+                height="2"
+                depth="0.22"
+                color="#1E5AA8">
+            </a-box>
+
+
+            <a-box
+                position="0.9 1.9 0"
+                width="0.22"
+                height="2"
+                depth="0.22"
+                color="#1E5AA8">
+            </a-box>
+
+
+            <a-box
+                position="0 2.85 0"
+                width="2"
+                height="0.22"
+                depth="0.22"
+                color="#1E5AA8">
+            </a-box>
+
+        </a-entity>
+
+
+        <!-- ================================================= -->
+        <!-- ACTUATOR -->
+        <!-- ================================================= -->
+
+        <a-cylinder
+            id="processing-actuator"
+            position="0 2.2 0"
+            radius="0.16"
+            height="0.9"
+            color="#D8D8D8">
+        </a-cylinder>
+
+
+        <a-cylinder
+            id="processing-tool"
+            position="0 1.68 0"
+            radius="0.28"
+            height="0.22"
+            color="#D32F2F">
+        </a-cylinder>
+
+
+        <!-- ================================================= -->
+        <!-- LEFT SENSOR -->
+        <!-- ================================================= -->
+
+        <a-box
+            position="-2.0 1.65 -0.75"
+            width="0.12"
+            height="1.5"
+            depth="0.12"
+            color="#B0B0B0">
+        </a-box>
+
+
+        <a-sphere
+            id="sensor-left-indicator"
+            position="-2.0 2.35 -0.75"
+            radius="0.18"
+            color="#00FF66"
+
+            material="
+                emissive: #00AA44;
+                emissiveIntensity: 0.25
+            ">
+        </a-sphere>
+
+
+        <!-- ================================================= -->
+        <!-- RIGHT SENSOR -->
+        <!-- ================================================= -->
+
+        <a-box
+            position="2.0 1.65 -0.75"
+            width="0.12"
+            height="1.5"
+            depth="0.12"
+            color="#B0B0B0">
+        </a-box>
+
+
+        <a-sphere
+            id="sensor-right-indicator"
+            position="2.0 2.35 -0.75"
+            radius="0.18"
+            color="#FFCC00"
+
+            material="
+                emissive: #CC9900;
+                emissiveIntensity: 0.25
+            ">
+        </a-sphere>
+
+
+        <!-- ================================================= -->
+        <!-- SAFETY POSTS -->
+        <!-- ================================================= -->
+
+        <a-cylinder
+            position="-3 0.75 -1.5"
+            radius="0.12"
+            height="1.5"
+            color="#FFD600">
+        </a-cylinder>
+
+
+        <a-cylinder
+            position="3 0.75 -1.5"
+            radius="0.12"
+            height="1.5"
+            color="#FFD600">
+        </a-cylinder>
+
+
+        <a-cylinder
+            position="-3 0.75 1.5"
+            radius="0.12"
+            height="1.5"
+            color="#FFD600">
+        </a-cylinder>
+
+
+        <a-cylinder
+            position="3 0.75 1.5"
+            radius="0.12"
+            height="1.5"
+            color="#FFD600">
+        </a-cylinder>
+
+
+        <!-- ================================================= -->
+        <!-- CONTROL PANEL -->
+        <!-- ================================================= -->
+
+        <a-entity
+            id="control-panel"
+            position="3.85 0 0"
+        >
+
+            <a-box
+                position="0 1.40 0"
+                width="0.75"
+                height="1.85"
+                depth="0.60"
+                color="#D9D9D9">
+            </a-box>
+
+
+            <!-- ============================================= -->
+            <!-- STATUS -->
+            <!-- ============================================= -->
+
+            <a-sphere
+                id="panel-green"
+                position="-0.22 2.05 0.31"
+                radius="0.08"
+                color="#00CC44"
+
+                material="
+                    emissive: #00CC44;
+                    emissiveIntensity: 1.2
+                ">
+            </a-sphere>
+
+
+            <a-sphere
+                id="panel-yellow"
+                position="0 2.05 0.31"
+                radius="0.08"
+                color="#FFCC00"
+
+                material="
+                    emissive: #FFCC00;
+                    emissiveIntensity: 0
+                ">
+            </a-sphere>
+
+
+            <a-sphere
+                id="panel-red"
+                position="0.22 2.05 0.31"
+                radius="0.08"
+                color="#CC0000"
+
+                material="
+                    emissive: #CC0000;
+                    emissiveIntensity: 0
+                ">
+            </a-sphere>
+
+
+            <a-text
+                value="STATUS"
+                position="0 2.25 0.315"
+                align="center"
+                width="0.9"
+                color="#111111">
+            </a-text>
+
+
+            <!-- ============================================= -->
+            <!-- START -->
+            <!-- ============================================= -->
+
+            <a-cylinder
+                id="button-start"
+                class="clickable"
+
+                position="-0.18 1.72 0.36"
+                rotation="90 0 0"
+
+                radius="0.12"
+                height="0.12"
+
+                color="#00AA33"
+
+                control-button="
+                    action: start
+                ">
+            </a-cylinder>
+
+
+            <!-- ============================================= -->
+            <!-- STOP -->
+            <!-- ============================================= -->
+
+            <a-cylinder
+                id="button-stop"
+                class="clickable"
+
+                position="0.18 1.72 0.36"
+                rotation="90 0 0"
+
+                radius="0.12"
+                height="0.12"
+
+                color="#FFB300"
+
+                control-button="
+                    action: stop
+                ">
+            </a-cylinder>
+
+
+            <!-- ============================================= -->
+            <!-- EMERGENCY -->
+            <!-- ============================================= -->
+
+            <a-cylinder
+                id="button-emergency"
+                class="clickable"
+
+                position="-0.18 1.30 0.39"
+                rotation="90 0 0"
+
+                radius="0.17"
+                height="0.16"
+
+                color="#E00000"
+
+                control-button="
+                    action: emergency
+                ">
+            </a-cylinder>
+
+
+            <!-- ============================================= -->
+            <!-- RESET -->
+            <!-- ============================================= -->
+
+            <a-cylinder
+                id="button-reset"
+                class="clickable"
+
+                position="0.18 1.30 0.36"
+                rotation="90 0 0"
+
+                radius="0.11"
+                height="0.12"
+
+                color="#1976D2"
+
+                control-button="
+                    action: reset
+                ">
+            </a-cylinder>
+
+
+            <!-- ============================================= -->
+            <!-- BUTTON LABELS -->
+            <!-- ============================================= -->
+
+            <a-text
+                value="START"
+                position="-0.18 1.92 0.315"
+                align="center"
+                width="0.78"
+                color="#111111">
+            </a-text>
+
+
+            <a-text
+                value="STOP"
+                position="0.18 1.92 0.315"
+                align="center"
+                width="0.78"
+                color="#111111">
+            </a-text>
+
+
+            <a-text
+                value="E-STOP"
+                position="-0.18 1.02 0.315"
+                align="center"
+                width="0.74"
+                color="#111111">
+            </a-text>
+
+
+            <a-text
+                value="RESET"
+                position="0.18 1.02 0.315"
+                align="center"
+                width="0.74"
+                color="#111111">
+            </a-text>
+
+        </a-entity>
+
+    </a-entity>
+
+
+
+    <!-- ===================================================== -->
+    <!-- USER / CAMERA -->
+    <!-- ===================================================== -->
+
+    <a-entity
+        id="player"
+        position="0 1.6 0.8"
+    >
+
+        <a-camera
+
+            id="main-camera"
+
+            wasd-controls="
+                acceleration: 18
+            "
+
+            look-controls
+        >
+
+            <a-cursor
+
+                color="#FFFFFF"
+
+                fuse="false"
+
+                raycaster="
+                    objects: .clickable
+                ">
+
+            </a-cursor>
+
+        </a-camera>
+
+    </a-entity>
+
+
+</a-scene>
+
+</body>
+
+</html>
