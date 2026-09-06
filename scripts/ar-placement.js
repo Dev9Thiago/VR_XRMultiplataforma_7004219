@@ -1,3 +1,26 @@
+// =============================================================
+// AR SURFACE DETECTION + COMPLETE SCENE PLACEMENT
+// =============================================================
+//
+// AR behavior:
+//
+// 1. Enter immersive AR.
+// 2. Enable camera passthrough.
+// 3. Hide the normal virtual floor.
+// 4. Hide the complete industrial exhibition.
+// 5. Detect a real horizontal surface.
+// 6. Display the green placement reticle.
+// 7. Tap the detected surface.
+// 8. Place BOTH:
+//      - industrial conveyor cell
+//      - CAD model display station
+//
+// Everything is contained inside #xr-content, therefore the
+// relative placement between both systems is preserved.
+//
+// =============================================================
+
+
 AFRAME.registerComponent(
     'ar-placement',
     {
@@ -12,9 +35,11 @@ AFRAME.registerComponent(
                 this.el;
 
 
-            this.cell =
+            // Complete virtual exhibition.
+
+            this.xrContent =
                 document.querySelector(
-                    '#industrial-cell'
+                    '#xr-content'
                 );
 
 
@@ -75,7 +100,20 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // FIXED AR SCALE
+            // AR DISPLAY SCALE
+            // =================================================
+            //
+            // The complete exhibition is several meters wide.
+            //
+            // Scaling the parent preserves the proportion
+            // between:
+            //
+            // conveyor
+            // CAD table
+            // Robot 6R
+            //
+            // without changing the individual objects.
+            //
             // =================================================
 
             this.arScale =
@@ -87,21 +125,21 @@ AFRAME.registerComponent(
             // =================================================
 
             this.normalPosition =
-                this.cell
+                this.xrContent
                     .object3D
                     .position
                     .clone();
 
 
             this.normalQuaternion =
-                this.cell
+                this.xrContent
                     .object3D
                     .quaternion
                     .clone();
 
 
             this.normalScale =
-                this.cell
+                this.xrContent
                     .object3D
                     .scale
                     .clone();
@@ -115,8 +153,8 @@ AFRAME.registerComponent(
                 'enter-vr',
                 () => {
 
-                    // A-Frame sometimes needs a short moment
-                    // before ar-mode becomes available.
+                    // A-Frame needs a short moment to determine
+                    // whether the XR session is VR or AR.
 
                     setTimeout(
                         () => {
@@ -259,14 +297,24 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // HIDE CELL UNTIL PLACED
+            // HIDE COMPLETE EXHIBITION UNTIL PLACED
             // =================================================
 
-            this.cell
-                .object3D
-                .visible =
-                    false;
+            if (
+                this.xrContent
+            ) {
 
+                this.xrContent
+                    .object3D
+                    .visible =
+                        false;
+
+            }
+
+
+            // =================================================
+            // HIDE RETICLE INITIALLY
+            // =================================================
 
             if (
                 this.reticle
@@ -283,7 +331,7 @@ AFRAME.registerComponent(
             try {
 
                 // =================================================
-                // VIEWER SPACE
+                // VIEWER REFERENCE SPACE
                 // =================================================
 
                 this.viewerSpace =
@@ -294,7 +342,7 @@ AFRAME.registerComponent(
 
 
                 // =================================================
-                // LOCAL WORLD SPACE
+                // WORLD REFERENCE SPACE
                 // =================================================
 
                 this.referenceSpace =
@@ -305,7 +353,7 @@ AFRAME.registerComponent(
 
 
                 // =================================================
-                // HIT TEST
+                // CHECK HIT-TEST API
                 // =================================================
 
                 if (
@@ -321,6 +369,10 @@ AFRAME.registerComponent(
 
                 }
 
+
+                // =================================================
+                // CREATE HIT-TEST SOURCE
+                // =================================================
 
                 this.hitTestSource =
                     await session
@@ -350,7 +402,7 @@ AFRAME.registerComponent(
                             !this.placed
                         ) {
 
-                            this.placeCell();
+                            this.placeContent();
 
                         }
 
@@ -379,7 +431,7 @@ AFRAME.registerComponent(
 
 
         // =====================================================
-        // MAIN AR UPDATE
+        // AR UPDATE LOOP
         // =====================================================
 
         tick: function () {
@@ -439,7 +491,7 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // NO SURFACE
+            // NO SURFACE DETECTED
             // =================================================
 
             if (
@@ -468,7 +520,7 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // VALID SURFACE
+            // SURFACE DETECTED
             // =================================================
 
             const pose =
@@ -516,7 +568,7 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // MOVE RETICLE TO DETECTED SURFACE
+            // MOVE RETICLE TO REAL SURFACE
             // =================================================
 
             if (
@@ -550,10 +602,10 @@ AFRAME.registerComponent(
 
 
         // =====================================================
-        // PLACE INDUSTRIAL CELL
+        // PLACE COMPLETE XR CONTENT
         // =====================================================
 
-        placeCell: function () {
+        placeContent: function () {
 
             if (
                 !this.arActive
@@ -561,6 +613,8 @@ AFRAME.registerComponent(
                 !this.hasHit
                 ||
                 this.placed
+                ||
+                !this.xrContent
             ) {
 
                 return;
@@ -569,10 +623,10 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // POSITION
+            // PLACE ROOT ON DETECTED REAL SURFACE
             // =================================================
 
-            this.cell
+            this.xrContent
                 .object3D
                 .position
                 .copy(
@@ -581,10 +635,16 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // KEEP CELL UPRIGHT
+            // KEEP THE INDUSTRIAL EXHIBITION UPRIGHT
+            // =================================================
+            //
+            // We deliberately do not inherit arbitrary surface
+            // rotation because the conveyor and table must stay
+            // vertically upright.
+            //
             // =================================================
 
-            this.cell
+            this.xrContent
                 .object3D
                 .rotation
                 .set(
@@ -595,10 +655,10 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // FIXED AR SCALE
+            // AR SCALE
             // =================================================
 
-            this.cell
+            this.xrContent
                 .object3D
                 .scale
                 .set(
@@ -609,10 +669,10 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // SHOW MODEL
+            // SHOW COMPLETE EXHIBITION
             // =================================================
 
-            this.cell
+            this.xrContent
                 .object3D
                 .visible =
                     true;
@@ -639,14 +699,14 @@ AFRAME.registerComponent(
 
 
             console.log(
-                'Industrial cell placed in AR.'
+                'Complete industrial exhibition placed in AR.'
             );
 
         },
 
 
         // =====================================================
-        // EXIT AR
+        // STOP AR
         // =====================================================
 
         stopAR: function () {
@@ -657,7 +717,7 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // REMOVE SELECT LISTENER
+            // REMOVE TAP LISTENER
             // =================================================
 
             if (
@@ -703,7 +763,7 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // RESET STATE
+            // RESET XR STATE
             // =================================================
 
             this.session =
@@ -755,7 +815,7 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // RESTORE FLOOR
+            // RESTORE NORMAL FLOOR
             // =================================================
 
             if (
@@ -771,7 +831,7 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // RESTORE BACKGROUND
+            // RESTORE NORMAL BACKGROUND
             // =================================================
 
             this.sceneEl.setAttribute(
@@ -782,37 +842,43 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // RESTORE NORMAL CELL
+            // RESTORE NORMAL DESKTOP/MOBILE CONTENT
             // =================================================
 
-            this.cell
-                .object3D
-                .visible =
-                    true;
+            if (
+                this.xrContent
+            ) {
+
+                this.xrContent
+                    .object3D
+                    .visible =
+                        true;
 
 
-            this.cell
-                .object3D
-                .position
-                .copy(
-                    this.normalPosition
-                );
+                this.xrContent
+                    .object3D
+                    .position
+                    .copy(
+                        this.normalPosition
+                    );
 
 
-            this.cell
-                .object3D
-                .quaternion
-                .copy(
-                    this.normalQuaternion
-                );
+                this.xrContent
+                    .object3D
+                    .quaternion
+                    .copy(
+                        this.normalQuaternion
+                    );
 
 
-            this.cell
-                .object3D
-                .scale
-                .copy(
-                    this.normalScale
-                );
+                this.xrContent
+                    .object3D
+                    .scale
+                    .copy(
+                        this.normalScale
+                    );
+
+            }
 
         }
 

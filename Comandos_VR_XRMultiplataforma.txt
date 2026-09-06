@@ -1,66 +1,524 @@
 VR_XRMultiplataforma - Comandos utiles
+=======================================
 
-Ruta del proyecto
+Proyecto:
+VR_XRMultiplataforma
 
-C:- unimilitar.edu.co_XRMultiplataforma
+Repositorio GitHub:
+VR_XRMultiplataforma_7004219
 
-1. Ir a la carpeta del proyecto
 
-cd “C:- unimilitar.edu.co_XRMultiplataforma”
+===============================================================
+RUTA DEL PROYECTO
+===============================================================
 
-2. Comprobar la carpeta actual
+C:\Users\lordg\OneDrive - unimilitar.edu.co\CodesPython\RealidadVirtual\VR_XRMultiplataforma
+
+
+===============================================================
+1. IR A LA CARPETA DEL PROYECTO
+===============================================================
+
+cd "C:\Users\lordg\OneDrive - unimilitar.edu.co\CodesPython\RealidadVirtual\VR_XRMultiplataforma"
+
+
+===============================================================
+2. COMPROBAR LA CARPETA ACTUAL
+===============================================================
 
 Get-Location
 
-3. Mostrar los archivos
+La ruta mostrada debe terminar en:
+
+VR_XRMultiplataforma
+
+
+===============================================================
+3. MOSTRAR LOS ARCHIVOS DEL PROYECTO
+===============================================================
 
 dir
 
-Debe aparecer index.html directamente en la carpeta del proyecto.
+Entre los archivos y carpetas principales deben aparecer:
 
-4. Iniciar el servidor local
+index.html
+README.md
+.gitignore
+scripts
+models
+evidence
+
+
+===============================================================
+4. INICIAR EL SERVIDOR LOCAL
+===============================================================
 
 python -m http.server 8000
 
-La terminal queda ocupada esperando solicitudes. Esto es normal.
+La terminal queda ocupada esperando solicitudes.
+Esto es completamente normal.
 
-5. Abrir el proyecto
+
+===============================================================
+5. ABRIR EL PROYECTO LOCALMENTE
+===============================================================
+
+Abrir en el navegador:
 
 http://localhost:8000
 
-Alternativa: http://127.0.0.1:8000
+Alternativa:
 
-6. Iniciar el servidor indicando directamente la carpeta (recomendado)
+http://127.0.0.1:8000
 
-python -m http.server 8000 –directory “C:-
-unimilitar.edu.co_XRMultiplataforma”
 
-Este comando evita servir accidentalmente la carpeta padre.
+===============================================================
+6. INICIAR EL SERVIDOR INDICANDO DIRECTAMENTE LA CARPETA
+===============================================================
 
-7. Detener el servidor
+Comando recomendado si no se quiere cambiar primero de directorio:
+
+python -m http.server 8000 --directory "C:\Users\lordg\OneDrive - unimilitar.edu.co\CodesPython\RealidadVirtual\VR_XRMultiplataforma"
+
+Este comando evita servir accidentalmente una carpeta diferente a la
+del proyecto.
+
+
+===============================================================
+7. DETENER EL SERVIDOR LOCAL
+===============================================================
 
 Ctrl + C
 
-8. Si aparece “Directory listing for /”
+El servidor debe detenerse antes de cerrar la terminal si se encuentra
+ejecutandose.
 
-El servidor fue iniciado desde una carpeta que no contiene directamente
-index.html.
 
-Solucion: cd “C:- unimilitar.edu.co_XRMultiplataforma” python -m
-http.server 8000
+===============================================================
+8. SI APARECE "Directory listing for /"
+===============================================================
 
-O usar directamente el comando recomendado del punto 6.
+Esto significa que el servidor fue iniciado desde una carpeta que no
+contiene directamente index.html.
 
-9. Mensaje 404 de favicon.ico
+Solucion 1:
 
-Un mensaje como:
+cd "C:\Users\lordg\OneDrive - unimilitar.edu.co\CodesPython\RealidadVirtual\VR_XRMultiplataforma"
+
+python -m http.server 8000
+
+
+Solucion 2:
+
+python -m http.server 8000 --directory "C:\Users\lordg\OneDrive - unimilitar.edu.co\CodesPython\RealidadVirtual\VR_XRMultiplataforma"
+
+
+===============================================================
+9. MENSAJE 404 DE favicon.ico
+===============================================================
+
+Puede aparecer un mensaje similar a:
 
 GET /favicon.ico HTTP/1.1 404
 
-no afecta el proyecto. El navegador simplemente solicito un icono de
-pestana que no existe.
+Esto no afecta el funcionamiento del proyecto.
 
-Nota
+El navegador simplemente intento solicitar un icono de pestana que no
+existe.
 
-Este archivo se ira ampliando con los comandos relevantes de desarrollo,
-pruebas y despliegue del proyecto.
+
+===============================================================
+10. COMPROBAR EL ESTADO DEL REPOSITORIO GIT
+===============================================================
+
+git status
+
+Este comando permite ver:
+
+- Archivos modificados.
+- Archivos nuevos.
+- Archivos eliminados.
+- Archivos preparados para commit.
+- Estado de la rama actual.
+
+Se recomienda ejecutarlo antes de realizar un commit.
+
+
+===============================================================
+11. AGREGAR LOS CAMBIOS AL AREA DE PREPARACION DE GIT
+===============================================================
+
+git add .
+
+Este comando prepara todos los archivos modificados que no hayan sido
+excluidos mediante .gitignore.
+
+
+IMPORTANTE:
+
+Los archivos pesados de trabajo como:
+
+*.blend
+*.blend1
+*.blend2
+*.stl
+*.step
+*.stp
+*.iges
+*.igs
+
+deben permanecer excluidos mediante .gitignore.
+
+El archivo final:
+
+models/Robot6R_Optimized.glb
+
+SI debe subirse al repositorio.
+
+
+===============================================================
+12. CREAR UN COMMIT
+===============================================================
+
+Formato general:
+
+git commit -m "Descripcion de los cambios"
+
+Ejemplo:
+
+git commit -m "Integrate optimized CAD robot into XR scene"
+
+
+Un commit guarda localmente un punto de control de los cambios.
+
+Todavia NO los sube automaticamente a GitHub.
+
+
+===============================================================
+13. SUBIR LOS CAMBIOS A GITHUB
+===============================================================
+
+git push
+
+Debido a que la rama main ya esta vinculada con origin/main, normalmente
+no es necesario escribir nuevamente:
+
+git push -u origin main
+
+El comando:
+
+git push
+
+es suficiente para las actualizaciones posteriores.
+
+
+===============================================================
+14. FLUJO NORMAL PARA ACTUALIZAR EL PROYECTO EN GITHUB
+===============================================================
+
+Cada vez que se realicen cambios que se quieran publicar:
+
+git status
+
+git add .
+
+git commit -m "Descripcion de los cambios"
+
+git push
+
+
+IMPORTANTE:
+
+Los cambios realizados en los archivos locales NO se suben
+automaticamente a GitHub.
+
+Siempre se debe realizar:
+
+add -> commit -> push
+
+
+===============================================================
+15. DESCARGAR CAMBIOS DEL REPOSITORIO
+===============================================================
+
+Si el repositorio fue modificado desde otro computador o directamente
+desde GitHub:
+
+git pull
+
+Esto descarga e integra los cambios de la rama remota.
+
+
+===============================================================
+16. VER LA RAMA ACTUAL
+===============================================================
+
+git branch
+
+La rama utilizada actualmente por el proyecto es:
+
+main
+
+
+===============================================================
+17. VER EL HISTORIAL DE COMMITS
+===============================================================
+
+git log --oneline
+
+Muestra una lista compacta de los commits realizados.
+
+
+===============================================================
+18. REPOSITORIO REMOTO CONFIGURADO
+===============================================================
+
+Para comprobar la direccion del repositorio remoto:
+
+git remote -v
+
+Debe aparecer el repositorio:
+
+https://github.com/Dev9Thiago/VR_XRMultiplataforma_7004219.git
+
+
+===============================================================
+19. GITHUB PAGES
+===============================================================
+
+La version publica del proyecto se encuentra desplegada mediante
+GitHub Pages.
+
+Direccion:
+
+https://dev9thiago.github.io/VR_XRMultiplataforma_7004219/
+
+GitHub Pages utiliza actualmente:
+
+Branch:
+main
+
+Folder:
+/ (root)
+
+
+No es necesario ejecutar:
+
+python -m http.server 8000
+
+para acceder a la version publicada mediante GitHub Pages.
+
+El servidor de Python solamente se necesita para pruebas locales.
+
+
+===============================================================
+20. ACTUALIZACION DE GITHUB PAGES
+===============================================================
+
+Despues de realizar:
+
+git add .
+git commit -m "Descripcion"
+git push
+
+GitHub Pages vuelve a desplegar automaticamente el contenido actualizado
+de la rama main.
+
+El despliegue puede tardar algunos segundos o minutos.
+
+
+===============================================================
+21. SI GITHUB PAGES MUESTRA UNA VERSION ANTIGUA
+===============================================================
+
+El navegador puede conservar archivos anteriores en cache.
+
+Primero intentar una recarga completa.
+
+En PC:
+
+Ctrl + F5
+
+Tambien puede agregarse temporalmente un parametro a la URL:
+
+https://dev9thiago.github.io/VR_XRMultiplataforma_7004219/?v=2
+
+Puede cambiarse el numero cuando sea necesario:
+
+?v=3
+?v=4
+?v=5
+
+Esto obliga al navegador a solicitar nuevamente los archivos.
+
+
+===============================================================
+22. PRUEBAS EN SMARTPHONE
+===============================================================
+
+Para las pruebas finales de WebXR se recomienda utilizar la version
+publicada mediante GitHub Pages:
+
+https://dev9thiago.github.io/VR_XRMultiplataforma_7004219/
+
+Esto proporciona un contexto HTTPS valido para:
+
+- Sensores IMU.
+- Device Orientation.
+- Device Motion.
+- WebXR.
+- VR inmersiva.
+- AR inmersiva.
+- Deteccion de superficies.
+
+
+===============================================================
+23. COMPATIBILIDAD DE NAVEGADORES MOVILES
+===============================================================
+
+Durante las pruebas realizadas:
+
+Google Chrome para Android:
+- WebXR disponible.
+- VR inmersiva disponible.
+- AR inmersiva disponible.
+- Sensores de orientacion disponibles.
+- Sensores de movimiento disponibles.
+
+Firefox para Android:
+- Sensores IMU disponibles.
+- WebXR inmersivo no disponible en el dispositivo probado.
+
+Por esta razon, para las pruebas finales de VR y AR se utiliza
+preferiblemente Google Chrome en Android.
+
+
+===============================================================
+24. ESTRUCTURA PRINCIPAL DEL PROYECTO
+===============================================================
+
+VR_XRMultiplataforma
+|
+|-- index.html
+|
+|-- scripts
+|   |-- conveyor.js
+|   |-- mobile-sensors.js
+|   |-- ar-placement.js
+|   `-- cad-display.js
+|
+|-- models
+|   `-- Robot6R_Optimized.glb
+|
+|-- evidence
+|
+|-- README.md
+|
+|-- .gitignore
+|
+`-- Comandos_VR_XRMultiplataforma.txt
+
+
+===============================================================
+25. ARCHIVOS CAD Y BLENDER
+===============================================================
+
+Los archivos fuente pesados utilizados durante la conversion y
+optimizacion del modelo CAD no deben subirse al repositorio normal.
+
+Entre ellos:
+
+- STL original.
+- Archivos .blend.
+- Copias de seguridad de Blender.
+- STEP/STP.
+- IGES/IGS.
+
+El recurso CAD utilizado por la aplicacion web es:
+
+models/Robot6R_Optimized.glb
+
+Este archivo contiene la version optimizada preparada para WebXR.
+
+
+===============================================================
+26. NOTA SOBRE GIT INIT
+===============================================================
+
+El repositorio ya fue inicializado y configurado.
+
+Por lo tanto, NO es necesario volver a ejecutar:
+
+git init
+
+para las actualizaciones normales del proyecto.
+
+
+===============================================================
+27. FLUJO RAPIDO DE TRABAJO
+===============================================================
+
+PRUEBA LOCAL:
+
+cd "C:\Users\lordg\OneDrive - unimilitar.edu.co\CodesPython\RealidadVirtual\VR_XRMultiplataforma"
+
+python -m http.server 8000
+
+Abrir:
+
+http://localhost:8000
+
+
+ACTUALIZAR GITHUB:
+
+git status
+git add .
+git commit -m "Descripcion de los cambios"
+git push
+
+
+PRUEBA PUBLICA:
+
+https://dev9thiago.github.io/VR_XRMultiplataforma_7004219/
+
+
+===============================================================
+NOTA FINAL
+===============================================================
+
+El desarrollo local y GitHub Pages cumplen funciones diferentes:
+
+Servidor Python:
+- Pruebas rapidas en el computador.
+- No requiere realizar commit.
+- Utiliza localhost.
+
+GitHub Pages:
+- Version publica del proyecto.
+- Utiliza HTTPS.
+- Necesaria para las pruebas WebXR completas en smartphone.
+- Se actualiza despues de realizar commit y push.
+
+Los cambios locales nunca se suben automaticamente al repositorio.
+
+Flujo de publicacion:
+
+MODIFICAR ARCHIVOS
+        |
+        v
+git status
+        |
+        v
+git add .
+        |
+        v
+git commit -m "..."
+        |
+        v
+git push
+        |
+        v
+GitHub
+        |
+        v
+GitHub Pages
