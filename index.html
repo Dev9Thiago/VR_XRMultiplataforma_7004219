@@ -40,13 +40,11 @@
 
     <script src="scripts/mobile-sensors.js"></script>
 
-    <script src="scripts/ar-controls.js"></script>
-
     <script src="scripts/ar-placement.js"></script>
 
 
     <!-- ===================================================== -->
-    <!-- NORMAL HTML UI STYLE -->
+    <!-- STYLE -->
     <!-- ===================================================== -->
 
     <style>
@@ -117,8 +115,7 @@
                     100vh - 80px
                 );
 
-            overflow-y:
-                auto;
+            overflow-y: auto;
 
             padding: 14px;
 
@@ -146,17 +143,12 @@
 
 
         #sensor-panel.visible {
-
             display: block;
-
         }
 
 
         #sensor-panel h3 {
-
-            margin:
-                0 0 10px 0;
-
+            margin: 0 0 10px 0;
         }
 
 
@@ -180,16 +172,13 @@
 
             gap: 12px;
 
-            margin:
-                3px 0;
+            margin: 3px 0;
 
         }
 
 
         .sensor-value {
-
             font-weight: bold;
-
         }
 
 
@@ -499,7 +488,10 @@
 
     webxr="
         referenceSpaceType: local;
-        optionalFeatures: hit-test, local-floor, bounded-floor
+        optionalFeatures:
+            hit-test,
+            local-floor,
+            bounded-floor
     "
 
     background="
@@ -515,7 +507,7 @@
 
 
     <!-- ===================================================== -->
-    <!-- AR RETICLE -->
+    <!-- AR SURFACE RETICLE -->
     <!-- ===================================================== -->
 
     <a-ring
@@ -542,7 +534,7 @@
 
 
     <!-- ===================================================== -->
-    <!-- NORMAL LIGHTING -->
+    <!-- LIGHTING -->
     <!-- ===================================================== -->
 
     <a-light
@@ -686,7 +678,9 @@
         </a-cylinder>
 
 
+        <!-- ================================================= -->
         <!-- WORKPIECES -->
+        <!-- ================================================= -->
 
         <a-box
             id="workpiece-1"
@@ -721,7 +715,9 @@
         </a-box>
 
 
+        <!-- ================================================= -->
         <!-- GANTRY -->
+        <!-- ================================================= -->
 
         <a-entity
             id="processing-station"
@@ -757,7 +753,9 @@
         </a-entity>
 
 
+        <!-- ================================================= -->
         <!-- ACTUATOR -->
+        <!-- ================================================= -->
 
         <a-cylinder
             id="processing-actuator"
@@ -777,7 +775,9 @@
         </a-cylinder>
 
 
+        <!-- ================================================= -->
         <!-- SENSOR POSTS -->
+        <!-- ================================================= -->
 
         <a-box
             position="-2.0 1.65 -0.75"
@@ -823,7 +823,9 @@
         </a-sphere>
 
 
+        <!-- ================================================= -->
         <!-- SAFETY POSTS -->
+        <!-- ================================================= -->
 
         <a-cylinder
             position="-3 0.75 -1.5"
@@ -857,7 +859,9 @@
         </a-cylinder>
 
 
+        <!-- ================================================= -->
         <!-- CONTROL PANEL -->
+        <!-- ================================================= -->
 
         <a-entity
             id="control-panel"
@@ -872,6 +876,8 @@
                 color="#D9D9D9">
             </a-box>
 
+
+            <!-- STATUS LIGHTS -->
 
             <a-sphere
                 id="panel-green"
@@ -921,6 +927,8 @@
             </a-text>
 
 
+            <!-- START -->
+
             <a-cylinder
                 id="button-start"
                 class="clickable"
@@ -932,6 +940,8 @@
                 control-button="action: start">
             </a-cylinder>
 
+
+            <!-- STOP -->
 
             <a-cylinder
                 id="button-stop"
@@ -945,6 +955,8 @@
             </a-cylinder>
 
 
+            <!-- EMERGENCY -->
+
             <a-cylinder
                 id="button-emergency"
                 class="clickable"
@@ -957,6 +969,8 @@
             </a-cylinder>
 
 
+            <!-- RESET -->
+
             <a-cylinder
                 id="button-reset"
                 class="clickable"
@@ -968,6 +982,8 @@
                 control-button="action: reset">
             </a-cylinder>
 
+
+            <!-- LABELS -->
 
             <a-text
                 value="START"
@@ -1040,246 +1056,6 @@
                 "
             >
             </a-cursor>
-
-
-            <!-- ================================================= -->
-            <!-- AR STATUS - UPPER LEFT -->
-            <!-- ================================================= -->
-
-            <a-entity
-
-                id="ar-status-panel"
-
-                position="-0.55 0.28 -1.2"
-
-                visible="true"
-            >
-
-                <a-plane
-
-                    width="0.72"
-
-                    height="0.13"
-
-                    color="#111111"
-
-                    material="
-                        transparent: true;
-                        opacity: 0.72
-                    "
-                >
-                </a-plane>
-
-
-                <a-text
-
-                    id="ar-status-text"
-
-                    value="AR ready"
-
-                    position="-0.33 0 0.006"
-
-                    width="0.78"
-
-                    color="#FFFFFF"
-
-                    align="left"
-                >
-                </a-text>
-
-            </a-entity>
-
-
-            <!-- ================================================= -->
-            <!-- XR-NATIVE AR CONTROLS - LOWER RIGHT -->
-            <!-- ================================================= -->
-
-            <a-entity
-
-                id="ar-xr-controls"
-
-                ar-controls
-
-                position="0.48 -0.23 -1.10"
-
-                visible="false"
-            >
-
-                <!-- CONTROL BACKGROUND -->
-
-                <a-plane
-
-                    width="0.78"
-
-                    height="0.47"
-
-                    color="#151515"
-
-                    material="
-                        transparent: true;
-                        opacity: 0.88
-                    "
-                >
-                </a-plane>
-
-
-                <!-- TITLE -->
-
-                <a-text
-
-                    value="AR CONTROLS"
-
-                    position="-0.34 0.18 0.012"
-
-                    width="0.62"
-
-                    color="#FFFFFF"
-                >
-                </a-text>
-
-
-                <!-- ROTATION LABEL -->
-
-                <a-text
-
-                    value="Rotation"
-
-                    position="-0.34 0.085 0.012"
-
-                    width="0.50"
-
-                    color="#DDDDDD"
-                >
-                </a-text>
-
-
-                <a-text
-
-                    id="ar-rotation-value-3d"
-
-                    value="0 deg"
-
-                    position="0.19 0.085 0.012"
-
-                    width="0.42"
-
-                    color="#FFFFFF"
-
-                    align="center"
-                >
-                </a-text>
-
-
-                <!-- ============================================= -->
-                <!-- SLIDER TRACK -->
-                <!-- ============================================= -->
-
-                <a-box
-
-                    id="ar-rotation-slider-3d"
-
-                    position="0 0.015 0.018"
-
-                    width="0.60"
-
-                    height="0.045"
-
-                    depth="0.025"
-
-                    color="#888888"
-                >
-                </a-box>
-
-
-                <!-- SLIDER KNOB -->
-
-                <a-sphere
-
-                    id="ar-rotation-knob"
-
-                    position="-0.30 0.015 0.055"
-
-                    radius="0.040"
-
-                    color="#00AAFF"
-                >
-                </a-sphere>
-
-
-                <!-- ============================================= -->
-                <!-- DISTANCE -->
-                <!-- ============================================= -->
-
-                <a-text
-
-                    id="ar-distance-value-3d"
-
-                    value="Distance: --"
-
-                    position="-0.34 -0.085 0.012"
-
-                    width="0.50"
-
-                    color="#DDDDDD"
-                >
-                </a-text>
-
-
-                <!-- ============================================= -->
-                <!-- SCALE -->
-                <!-- ============================================= -->
-
-                <a-text
-
-                    id="ar-scale-value-3d"
-
-                    value="Scale: 1.00x"
-
-                    position="0.08 -0.085 0.012"
-
-                    width="0.43"
-
-                    color="#DDDDDD"
-                >
-                </a-text>
-
-
-                <!-- ============================================= -->
-                <!-- REPOSITION BUTTON -->
-                <!-- ============================================= -->
-
-                <a-box
-
-                    id="ar-reposition-3d"
-
-                    position="0 -0.175 0.025"
-
-                    width="0.60"
-
-                    height="0.09"
-
-                    depth="0.035"
-
-                    color="#1976D2"
-                >
-                </a-box>
-
-
-                <a-text
-
-                    value="REPOSITION"
-
-                    position="-0.15 -0.175 0.052"
-
-                    width="0.48"
-
-                    color="#FFFFFF"
-
-                    align="center"
-                >
-                </a-text>
-
-            </a-entity>
 
         </a-camera>
 

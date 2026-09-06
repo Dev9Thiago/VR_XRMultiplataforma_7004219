@@ -30,18 +30,6 @@ AFRAME.registerComponent(
                 );
 
 
-            this.statusText =
-                document.querySelector(
-                    '#ar-status-text'
-                );
-
-
-            this.arControls =
-                document.querySelector(
-                    '#ar-xr-controls'
-                );
-
-
             // =================================================
             // XR STATE
             // =================================================
@@ -75,7 +63,7 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // SURFACE HIT DATA
+            // LAST VALID SURFACE HIT
             // =================================================
 
             this.lastHitPosition =
@@ -87,56 +75,15 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // MODEL PLACEMENT DATA
+            // FIXED AR SCALE
             // =================================================
 
-            this.lockedPosition =
-                new THREE.Vector3();
-
-
-            this.rotationDegrees =
-                0;
-
-
-            this.rotationRadians =
-                0;
-
-
-            // =================================================
-            // DISTANCE-BASED SCALING
-            // =================================================
-
-            // Initial AR scale at placement.
-
-            this.baseARScale =
+            this.arScale =
                 0.30;
 
 
-            // Distance between camera and model at
-            // the instant the model is placed.
-
-            this.referenceDistance =
-                null;
-
-
-            // Scaling limits.
-
-            this.minimumScaleMultiplier =
-                0.55;
-
-
-            this.maximumScaleMultiplier =
-                1.75;
-
-
-            // Current scale multiplier.
-
-            this.currentScaleMultiplier =
-                1.0;
-
-
             // =================================================
-            // SAVE NORMAL SCENE TRANSFORM
+            // SAVE NORMAL NON-AR TRANSFORM
             // =================================================
 
             this.normalPosition =
@@ -167,6 +114,9 @@ AFRAME.registerComponent(
             this.sceneEl.addEventListener(
                 'enter-vr',
                 () => {
+
+                    // A-Frame sometimes needs a short moment
+                    // before ar-mode becomes available.
 
                     setTimeout(
                         () => {
@@ -248,6 +198,11 @@ AFRAME.registerComponent(
             }
 
 
+            console.log(
+                'AR mode started.'
+            );
+
+
             this.session =
                 session;
 
@@ -262,22 +217,6 @@ AFRAME.registerComponent(
 
             this.hasHit =
                 false;
-
-
-            this.referenceDistance =
-                null;
-
-
-            this.currentScaleMultiplier =
-                1;
-
-
-            this.rotationDegrees =
-                0;
-
-
-            this.rotationRadians =
-                0;
 
 
             // =================================================
@@ -304,15 +243,17 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // HIDE VIRTUAL FLOOR
+            // HIDE NORMAL VIRTUAL FLOOR
             // =================================================
 
             if (
                 this.floor
             ) {
 
-                this.floor.object3D.visible =
-                    false;
+                this.floor
+                    .object3D
+                    .visible =
+                        false;
 
             }
 
@@ -321,43 +262,28 @@ AFRAME.registerComponent(
             // HIDE CELL UNTIL PLACED
             // =================================================
 
-            this.cell.object3D.visible =
-                false;
+            this.cell
+                .object3D
+                .visible =
+                    false;
 
 
             if (
                 this.reticle
             ) {
 
-                this.reticle.object3D.visible =
-                    false;
+                this.reticle
+                    .object3D
+                    .visible =
+                        false;
 
             }
-
-
-            // =================================================
-            // SHOW XR CONTROLS
-            // =================================================
-
-            if (
-                this.arControls
-            ) {
-
-                this.arControls.object3D.visible =
-                    true;
-
-            }
-
-
-            this.setStatus(
-                'Searching for a surface...'
-            );
 
 
             try {
 
                 // =================================================
-                // REFERENCE SPACES
+                // VIEWER SPACE
                 // =================================================
 
                 this.viewerSpace =
@@ -366,6 +292,10 @@ AFRAME.registerComponent(
                             'viewer'
                         );
 
+
+                // =================================================
+                // LOCAL WORLD SPACE
+                // =================================================
 
                 this.referenceSpace =
                     await session
@@ -379,13 +309,14 @@ AFRAME.registerComponent(
                 // =================================================
 
                 if (
-                    typeof session.requestHitTestSource
+                    typeof session
+                        .requestHitTestSource
                     !==
                     'function'
                 ) {
 
                     throw new Error(
-                        'WebXR hit-test is unavailable.'
+                        'WebXR hit-test API unavailable.'
                     );
 
                 }
@@ -401,35 +332,17 @@ AFRAME.registerComponent(
                         );
 
 
+                console.log(
+                    'AR surface detection initialized.'
+                );
+
+
                 // =================================================
-                // SCREEN TAP
+                // TAP TO PLACE
                 // =================================================
 
                 this.onSelect =
-                    (event) => {
-
-                        // Let AR controls consume their own select
-                        // events before placement is attempted.
-
-                        const controlsComponent =
-                            this.arControls
-                                ?.components[
-                                    'ar-controls'
-                                ];
-
-
-                        if (
-                            controlsComponent
-                            &&
-                            controlsComponent.handleXRSelect(
-                                event
-                            )
-                        ) {
-
-                            return;
-
-                        }
-
+                    () => {
 
                         if (
                             this.hasHit
@@ -449,11 +362,6 @@ AFRAME.registerComponent(
                     this.onSelect
                 );
 
-
-                console.log(
-                    'AR surface detection initialized.'
-                );
-
             }
 
             catch (
@@ -465,51 +373,22 @@ AFRAME.registerComponent(
                     error
                 );
 
-
-                this.setStatus(
-                    'Surface detection unavailable.'
-                );
-
             }
 
         },
 
 
         // =====================================================
-        // MAIN UPDATE
+        // MAIN AR UPDATE
         // =====================================================
 
         tick: function () {
 
             if (
                 !this.arActive
-            ) {
-
-                return;
-
-            }
-
-
-            // =================================================
-            // MODEL ALREADY PLACED
-            // =================================================
-
-            if (
+                ||
                 this.placed
-            ) {
-
-                this.updatePlacedModel();
-
-                return;
-
-            }
-
-
-            // =================================================
-            // SURFACE SEARCH
-            // =================================================
-
-            if (
+                ||
                 !this.hitTestSource
                 ||
                 !this.referenceSpace
@@ -560,7 +439,7 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // NOTHING DETECTED
+            // NO SURFACE
             // =================================================
 
             if (
@@ -575,15 +454,12 @@ AFRAME.registerComponent(
                     this.reticle
                 ) {
 
-                    this.reticle.object3D.visible =
-                        false;
+                    this.reticle
+                        .object3D
+                        .visible =
+                            false;
 
                 }
-
-
-                this.setStatus(
-                    'Searching for a surface...'
-                );
 
 
                 return;
@@ -624,7 +500,7 @@ AFRAME.registerComponent(
             );
 
 
-            const tempScale =
+            const temporaryScale =
                 new THREE.Vector3();
 
 
@@ -634,21 +510,23 @@ AFRAME.registerComponent(
 
                 this.lastHitQuaternion,
 
-                tempScale
+                temporaryScale
 
             );
 
 
             // =================================================
-            // RETICLE
+            // MOVE RETICLE TO DETECTED SURFACE
             // =================================================
 
             if (
                 this.reticle
             ) {
 
-                this.reticle.object3D.visible =
-                    true;
+                this.reticle
+                    .object3D
+                    .visible =
+                        true;
 
 
                 this.reticle
@@ -668,16 +546,11 @@ AFRAME.registerComponent(
 
             }
 
-
-            this.setStatus(
-                'Surface detected - tap to place.'
-            );
-
         },
 
 
         // =====================================================
-        // PLACE MODEL
+        // PLACE INDUSTRIAL CELL
         // =====================================================
 
         placeCell: function () {
@@ -695,26 +568,21 @@ AFRAME.registerComponent(
             }
 
 
-            this.lockedPosition.copy(
-                this.lastHitPosition
-            );
-
+            // =================================================
+            // POSITION
+            // =================================================
 
             this.cell
                 .object3D
                 .position
                 .copy(
-                    this.lockedPosition
+                    this.lastHitPosition
                 );
 
 
-            this.rotationDegrees =
-                0;
-
-
-            this.rotationRadians =
-                0;
-
+            // =================================================
+            // KEEP CELL UPRIGHT
+            // =================================================
 
             this.cell
                 .object3D
@@ -726,418 +594,71 @@ AFRAME.registerComponent(
                 );
 
 
+            // =================================================
+            // FIXED AR SCALE
+            // =================================================
+
             this.cell
                 .object3D
                 .scale
                 .set(
-                    this.baseARScale,
-                    this.baseARScale,
-                    this.baseARScale
+                    this.arScale,
+                    this.arScale,
+                    this.arScale
                 );
 
 
-            this.cell.object3D.visible =
-                true;
+            // =================================================
+            // SHOW MODEL
+            // =================================================
+
+            this.cell
+                .object3D
+                .visible =
+                    true;
 
 
             this.placed =
                 true;
 
 
+            // =================================================
+            // HIDE RETICLE
+            // =================================================
+
             if (
                 this.reticle
             ) {
 
-                this.reticle.object3D.visible =
-                    false;
+                this.reticle
+                    .object3D
+                    .visible =
+                        false;
 
             }
-
-
-            // =================================================
-            // REFERENCE DISTANCE
-            // =================================================
-
-            const cameraPosition =
-                this.getCameraWorldPosition();
-
-
-            this.referenceDistance =
-                cameraPosition.distanceTo(
-                    this.lockedPosition
-                );
-
-
-            if (
-                this.referenceDistance <
-                0.05
-            ) {
-
-                this.referenceDistance =
-                    0.05;
-
-            }
-
-
-            // =================================================
-            // ENABLE CONTROLS
-            // =================================================
-
-            const controlsComponent =
-                this.arControls
-                    ?.components[
-                        'ar-controls'
-                    ];
-
-
-            if (
-                controlsComponent
-            ) {
-
-                controlsComponent.setEnabled(
-                    true
-                );
-
-
-                controlsComponent.setSliderValue(
-                    0
-                );
-
-            }
-
-
-            this.setStatus(
-                'Placed - move the phone or adjust rotation.'
-            );
 
 
             console.log(
-                'AR cell placed.'
+                'Industrial cell placed in AR.'
             );
 
         },
 
 
         // =====================================================
-        // UPDATE PLACED MODEL
-        // =====================================================
-
-        updatePlacedModel: function () {
-
-            const cameraPosition =
-                this.getCameraWorldPosition();
-
-
-            const currentDistance =
-                cameraPosition.distanceTo(
-                    this.lockedPosition
-                );
-
-
-            if (
-                !this.referenceDistance
-                ||
-                currentDistance <
-                0.01
-            ) {
-
-                return;
-
-            }
-
-
-            // =================================================
-            // DYNAMIC SCALE
-            // =================================================
-            //
-            // Moving closer:
-            //
-            // referenceDistance / currentDistance > 1
-            //
-            // -> model grows.
-            //
-            // Moving away:
-            //
-            // referenceDistance / currentDistance < 1
-            //
-            // -> model shrinks.
-            //
-            // =================================================
-
-            let multiplier =
-                this.referenceDistance
-                /
-                currentDistance;
-
-
-            multiplier =
-                THREE.MathUtils.clamp(
-
-                    multiplier,
-
-                    this.minimumScaleMultiplier,
-
-                    this.maximumScaleMultiplier
-
-                );
-
-
-            this.currentScaleMultiplier =
-                multiplier;
-
-
-            const scale =
-                this.baseARScale
-                *
-                multiplier;
-
-
-            // =================================================
-            // LOCK WORLD POSITION
-            // =================================================
-
-            this.cell
-                .object3D
-                .position
-                .copy(
-                    this.lockedPosition
-                );
-
-
-            // =================================================
-            // APPLY ROTATION
-            // =================================================
-
-            this.cell
-                .object3D
-                .rotation
-                .set(
-                    0,
-                    this.rotationRadians,
-                    0
-                );
-
-
-            // =================================================
-            // APPLY DYNAMIC SCALE
-            // =================================================
-
-            this.cell
-                .object3D
-                .scale
-                .set(
-                    scale,
-                    scale,
-                    scale
-                );
-
-
-            // =================================================
-            // UPDATE CONTROL INFORMATION
-            // =================================================
-
-            const controlsComponent =
-                this.arControls
-                    ?.components[
-                        'ar-controls'
-                    ];
-
-
-            if (
-                controlsComponent
-            ) {
-
-                controlsComponent.updateDistance(
-                    currentDistance,
-                    multiplier
-                );
-
-            }
-
-        },
-
-
-        // =====================================================
-        // SET ROTATION
-        // =====================================================
-
-        setRotationDegrees: function (
-            degrees
-        ) {
-
-            if (
-                !this.placed
-            ) {
-
-                return;
-
-            }
-
-
-            degrees =
-                THREE.MathUtils.clamp(
-                    degrees,
-                    0,
-                    360
-                );
-
-
-            this.rotationDegrees =
-                degrees;
-
-
-            this.rotationRadians =
-                THREE.MathUtils.degToRad(
-                    degrees
-                );
-
-
-            this.cell
-                .object3D
-                .rotation
-                .set(
-                    0,
-                    this.rotationRadians,
-                    0
-                );
-
-        },
-
-
-        // =====================================================
-        // REPOSITION
-        // =====================================================
-
-        reposition: function () {
-
-            if (
-                !this.arActive
-            ) {
-
-                return;
-
-            }
-
-
-            this.placed =
-                false;
-
-
-            this.hasHit =
-                false;
-
-
-            this.referenceDistance =
-                null;
-
-
-            this.currentScaleMultiplier =
-                1;
-
-
-            this.cell.object3D.visible =
-                false;
-
-
-            if (
-                this.reticle
-            ) {
-
-                this.reticle.object3D.visible =
-                    false;
-
-            }
-
-
-            const controlsComponent =
-                this.arControls
-                    ?.components[
-                        'ar-controls'
-                    ];
-
-
-            if (
-                controlsComponent
-            ) {
-
-                controlsComponent.setEnabled(
-                    false
-                );
-
-            }
-
-
-            this.setStatus(
-                'Searching for a new surface...'
-            );
-
-        },
-
-
-        // =====================================================
-        // CAMERA POSITION
-        // =====================================================
-
-        getCameraWorldPosition: function () {
-
-            const camera =
-                document.querySelector(
-                    '#main-camera'
-                );
-
-
-            const position =
-                new THREE.Vector3();
-
-
-            if (
-                camera
-            ) {
-
-                camera
-                    .object3D
-                    .getWorldPosition(
-                        position
-                    );
-
-            }
-
-
-            return position;
-
-        },
-
-
-        // =====================================================
-        // STATUS TEXT
-        // =====================================================
-
-        setStatus: function (
-            text
-        ) {
-
-            if (
-                !this.statusText
-            ) {
-
-                return;
-
-            }
-
-
-            this.statusText.setAttribute(
-                'value',
-                text
-            );
-
-        },
-
-
-        // =====================================================
-        // STOP AR
+        // EXIT AR
         // =====================================================
 
         stopAR: function () {
+
+            console.log(
+                'Leaving AR mode.'
+            );
+
+
+            // =================================================
+            // REMOVE SELECT LISTENER
+            // =================================================
 
             if (
                 this.session
@@ -1152,6 +673,10 @@ AFRAME.registerComponent(
 
             }
 
+
+            // =================================================
+            // CANCEL HIT TEST
+            // =================================================
 
             if (
                 this.hitTestSource
@@ -1176,6 +701,10 @@ AFRAME.registerComponent(
 
             }
 
+
+            // =================================================
+            // RESET STATE
+            // =================================================
 
             this.session =
                 null;
@@ -1209,34 +738,18 @@ AFRAME.registerComponent(
                 false;
 
 
-            this.referenceDistance =
-                null;
-
-
-            this.currentScaleMultiplier =
-                1;
-
-
             // =================================================
-            // HIDE AR UI
+            // HIDE RETICLE
             // =================================================
 
             if (
                 this.reticle
             ) {
 
-                this.reticle.object3D.visible =
-                    false;
-
-            }
-
-
-            if (
-                this.arControls
-            ) {
-
-                this.arControls.object3D.visible =
-                    false;
+                this.reticle
+                    .object3D
+                    .visible =
+                        false;
 
             }
 
@@ -1249,8 +762,10 @@ AFRAME.registerComponent(
                 this.floor
             ) {
 
-                this.floor.object3D.visible =
-                    true;
+                this.floor
+                    .object3D
+                    .visible =
+                        true;
 
             }
 
@@ -1267,11 +782,13 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // RESTORE CELL
+            // RESTORE NORMAL CELL
             // =================================================
 
-            this.cell.object3D.visible =
-                true;
+            this.cell
+                .object3D
+                .visible =
+                    true;
 
 
             this.cell
