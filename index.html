@@ -52,7 +52,7 @@
 
 
     <!-- ===================================================== -->
-    <!-- CSS -->
+    <!-- STYLE -->
     <!-- ===================================================== -->
 
     <style>
@@ -82,7 +82,7 @@
 
 
         /* =================================================== */
-        /* SENSOR TOGGLE */
+        /* SENSOR BUTTON */
         /* =================================================== */
 
         #sensor-toggle {
@@ -121,9 +121,6 @@
 
             font-size:
                 14px;
-
-            cursor:
-                pointer;
 
         }
 
@@ -184,9 +181,6 @@
             display:
                 none;
 
-            backdrop-filter:
-                blur(4px);
-
         }
 
 
@@ -203,9 +197,6 @@
             margin:
                 0 0 10px 0;
 
-            font-size:
-                15px;
-
         }
 
 
@@ -213,9 +204,6 @@
 
             margin:
                 13px 0 5px 0;
-
-            font-size:
-                12px;
 
             color:
                 #DDDDDD;
@@ -248,10 +236,6 @@
         }
 
 
-        /* =================================================== */
-        /* WEBXR DIAGNOSTICS */
-        /* =================================================== */
-
         .diagnostic-section {
 
             margin-top:
@@ -272,24 +256,10 @@
         }
 
 
-        .diagnostic-title {
-
-            margin-bottom:
-                7px;
-
-            font-weight:
-                bold;
-
-        }
-
-
         .diag-good {
 
             color:
                 #4CFF6A;
-
-            font-weight:
-                bold;
 
         }
 
@@ -299,9 +269,6 @@
             color:
                 #FF5C5C;
 
-            font-weight:
-                bold;
-
         }
 
 
@@ -310,9 +277,6 @@
             color:
                 #FFD54F;
 
-            font-weight:
-                bold;
-
         }
 
 
@@ -320,9 +284,6 @@
 
             margin-top:
                 12px;
-
-            font-size:
-                11px;
 
             color:
                 #AAAAAA;
@@ -353,14 +314,11 @@
             color:
                 white;
 
-            cursor:
-                pointer;
-
         }
 
 
         /* =================================================== */
-        /* AR DOM OVERLAY */
+        /* AR OVERLAY */
         /* =================================================== */
 
         #ar-overlay {
@@ -375,7 +333,7 @@
                 0;
 
             bottom:
-                22px;
+                25px;
 
             z-index:
                 20000;
@@ -383,17 +341,11 @@
             display:
                 none;
 
-            flex-direction:
-                column;
-
-            align-items:
-                center;
-
             justify-content:
                 center;
 
-            gap:
-                10px;
+            align-items:
+                center;
 
             pointer-events:
                 none;
@@ -403,11 +355,11 @@
 
         #ar-instruction {
 
-            max-width:
-                90vw;
-
             padding:
                 10px 16px;
+
+            max-width:
+                90vw;
 
             border-radius:
                 8px;
@@ -417,7 +369,7 @@
                     10,
                     10,
                     10,
-                    0.78
+                    0.80
                 );
 
             color:
@@ -432,127 +384,6 @@
         }
 
 
-        #ar-controls {
-
-            display:
-                flex;
-
-            align-items:
-                center;
-
-            justify-content:
-                center;
-
-            gap:
-                10px;
-
-            pointer-events:
-                auto;
-
-        }
-
-
-        .ar-button {
-
-            height:
-                46px;
-
-            min-width:
-                54px;
-
-            padding:
-                0 14px;
-
-            border:
-                none;
-
-            border-radius:
-                8px;
-
-            background:
-                rgba(
-                    20,
-                    20,
-                    20,
-                    0.88
-                );
-
-            color:
-                white;
-
-            font-size:
-                16px;
-
-            cursor:
-                pointer;
-
-        }
-
-
-        #ar-scale-down,
-        #ar-scale-up {
-
-            font-size:
-                25px;
-
-            font-weight:
-                bold;
-
-        }
-
-
-        #ar-scale-value {
-
-            min-width:
-                55px;
-
-            padding:
-                10px;
-
-            border-radius:
-                7px;
-
-            background:
-                rgba(
-                    20,
-                    20,
-                    20,
-                    0.82
-                );
-
-            color:
-                white;
-
-            text-align:
-                center;
-
-            font-family:
-                Consolas,
-                monospace;
-
-            font-size:
-                13px;
-
-        }
-
-
-        #ar-reposition {
-
-            background:
-                rgba(
-                    25,
-                    118,
-                    210,
-                    0.90
-                );
-
-        }
-
-
-        /* =================================================== */
-        /* PHONE DISPLAY */
-        /* =================================================== */
-
         @media
         (
             max-width: 900px
@@ -565,12 +396,6 @@
 
                 right:
                     8px;
-
-                padding:
-                    8px 11px;
-
-                font-size:
-                    12px;
 
             }
 
@@ -586,9 +411,6 @@
                 width:
                     245px;
 
-                font-size:
-                    11px;
-
             }
 
 
@@ -596,20 +418,6 @@
 
                 font-size:
                     12px;
-
-            }
-
-
-            .ar-button {
-
-                height:
-                    42px;
-
-                min-width:
-                    48px;
-
-                padding:
-                    0 11px;
 
             }
 
@@ -624,7 +432,7 @@
 
 
 <!-- ========================================================= -->
-<!-- SMARTPHONE SENSOR / WEBXR HUD -->
+<!-- SENSOR HUD -->
 <!-- ========================================================= -->
 
 <button
@@ -644,10 +452,6 @@
     </h3>
 
 
-    <!-- ===================================================== -->
-    <!-- ORIENTATION -->
-    <!-- ===================================================== -->
-
     <h4>
         Orientation [deg]
     </h4>
@@ -655,9 +459,7 @@
 
     <div class="sensor-row">
 
-        <span>
-            Alpha
-        </span>
+        <span>Alpha</span>
 
         <span
             id="orientation-alpha"
@@ -671,9 +473,7 @@
 
     <div class="sensor-row">
 
-        <span>
-            Beta
-        </span>
+        <span>Beta</span>
 
         <span
             id="orientation-beta"
@@ -687,9 +487,7 @@
 
     <div class="sensor-row">
 
-        <span>
-            Gamma
-        </span>
+        <span>Gamma</span>
 
         <span
             id="orientation-gamma"
@@ -700,10 +498,6 @@
 
     </div>
 
-
-    <!-- ===================================================== -->
-    <!-- ACCELERATION -->
-    <!-- ===================================================== -->
 
     <h4>
         Acceleration [m/s²]
@@ -752,10 +546,6 @@
     </div>
 
 
-    <!-- ===================================================== -->
-    <!-- ACCELERATION + GRAVITY -->
-    <!-- ===================================================== -->
-
     <h4>
         Acceleration + gravity [m/s²]
     </h4>
@@ -803,10 +593,6 @@
     </div>
 
 
-    <!-- ===================================================== -->
-    <!-- ROTATION RATE -->
-    <!-- ===================================================== -->
-
     <h4>
         Rotation rate [deg/s]
     </h4>
@@ -814,9 +600,7 @@
 
     <div class="sensor-row">
 
-        <span>
-            Alpha
-        </span>
+        <span>Alpha</span>
 
         <span
             id="rotation-alpha"
@@ -830,9 +614,7 @@
 
     <div class="sensor-row">
 
-        <span>
-            Beta
-        </span>
+        <span>Beta</span>
 
         <span
             id="rotation-beta"
@@ -846,9 +628,7 @@
 
     <div class="sensor-row">
 
-        <span>
-            Gamma
-        </span>
+        <span>Gamma</span>
 
         <span
             id="rotation-gamma"
@@ -860,19 +640,13 @@
     </div>
 
 
-    <!-- ===================================================== -->
-    <!-- WEBXR -->
-    <!-- ===================================================== -->
-
     <div
         class="diagnostic-section"
     >
 
-        <div
-            class="diagnostic-title"
-        >
+        <strong>
             WebXR compatibility
-        </div>
+        </strong>
 
 
         <div class="sensor-row">
@@ -978,13 +752,10 @@
 
         <div class="sensor-row">
 
-            <span>
-                Browser
-            </span>
+            <span>Browser</span>
 
             <span
                 id="diag-browser"
-                class="sensor-value"
             >
                 --
             </span>
@@ -994,13 +765,10 @@
 
         <div class="sensor-row">
 
-            <span>
-                Platform
-            </span>
+            <span>Platform</span>
 
             <span
                 id="diag-platform"
-                class="sensor-value"
             >
                 --
             </span>
@@ -1028,7 +796,7 @@
 
 
 <!-- ========================================================= -->
-<!-- AR DOM OVERLAY -->
+<!-- AR INSTRUCTION OVERLAY -->
 <!-- ========================================================= -->
 
 <div
@@ -1039,46 +807,6 @@
         id="ar-instruction"
     >
         Move the phone slowly and point at a floor or table.
-    </div>
-
-
-    <div
-        id="ar-controls"
-    >
-
-        <button
-            id="ar-scale-down"
-            class="ar-button"
-            type="button"
-        >
-            −
-        </button>
-
-
-        <div
-            id="ar-scale-value"
-        >
-            40%
-        </div>
-
-
-        <button
-            id="ar-scale-up"
-            class="ar-button"
-            type="button"
-        >
-            +
-        </button>
-
-
-        <button
-            id="ar-reposition"
-            class="ar-button"
-            type="button"
-        >
-            Reposition
-        </button>
-
     </div>
 
 </div>
@@ -1094,9 +822,14 @@
 
     ar-placement
 
+    xr-mode-ui="
+        enabled: true;
+        XRMode: xr
+    "
+
     webxr="
-        requiredFeatures: hit-test;
-        optionalFeatures: local-floor, bounded-floor, dom-overlay;
+        referenceSpaceType: local;
+        optionalFeatures: hit-test, dom-overlay, local-floor, bounded-floor;
         overlayElement: #ar-overlay
     "
 
@@ -1115,32 +848,28 @@
     <!-- AR RETICLE -->
     <!-- ===================================================== -->
 
-    <a-entity
+    <a-ring
+
         id="ar-reticle"
 
         visible="false"
+
+        radius-inner="0.07"
+
+        radius-outer="0.10"
+
+        rotation="-90 0 0"
+
+        color="#00FF88"
+
+        material="
+            shader: flat;
+            transparent: true;
+            opacity: 0.95
+        "
     >
 
-        <a-ring
-
-            radius-inner="0.075"
-
-            radius-outer="0.105"
-
-            rotation="-90 0 0"
-
-            color="#00FF88"
-
-            material="
-                shader: flat;
-                transparent: true;
-                opacity: 0.90
-            "
-        >
-
-        </a-ring>
-
-    </a-entity>
+    </a-ring>
 
 
     <!-- ===================================================== -->
@@ -1231,9 +960,7 @@
         </a-box>
 
 
-        <!-- ================================================= -->
-        <!-- SUPPORT LEGS -->
-        <!-- ================================================= -->
+        <!-- SUPPORTS -->
 
         <a-box
             position="-2.2 0.35 -0.45"
@@ -1271,9 +998,7 @@
         </a-box>
 
 
-        <!-- ================================================= -->
-        <!-- END ROLLERS -->
-        <!-- ================================================= -->
+        <!-- ROLLERS -->
 
         <a-cylinder
             position="-2.72 0.95 0"
@@ -1336,7 +1061,6 @@
 
         <a-entity
             id="processing-station"
-            position="0 0 0"
             rotation="0 90 0"
         >
 
@@ -1392,7 +1116,7 @@
 
 
         <!-- ================================================= -->
-        <!-- LEFT SENSOR -->
+        <!-- SENSOR POSTS -->
         <!-- ================================================= -->
 
         <a-box
@@ -1416,10 +1140,6 @@
             ">
         </a-sphere>
 
-
-        <!-- ================================================= -->
-        <!-- RIGHT SENSOR -->
-        <!-- ================================================= -->
 
         <a-box
             position="2.0 1.65 -0.75"
@@ -1488,8 +1208,6 @@
             position="3.85 0 0"
         >
 
-            <!-- Cabinet -->
-
             <a-box
                 position="0 1.40 0"
                 width="0.75"
@@ -1499,9 +1217,7 @@
             </a-box>
 
 
-            <!-- ============================================= -->
-            <!-- STATUS LIGHTS -->
-            <!-- ============================================= -->
+            <!-- STATUS -->
 
             <a-sphere
                 id="panel-green"
@@ -1551,109 +1267,57 @@
             </a-text>
 
 
-            <!-- ============================================= -->
-            <!-- START -->
-            <!-- ============================================= -->
+            <!-- BUTTONS -->
 
             <a-cylinder
                 id="button-start"
-
                 class="clickable"
-
                 position="-0.18 1.72 0.36"
-
                 rotation="90 0 0"
-
                 radius="0.12"
-
                 height="0.12"
-
                 color="#00AA33"
-
-                control-button="
-                    action: start
-                ">
+                control-button="action: start">
             </a-cylinder>
 
-
-            <!-- ============================================= -->
-            <!-- STOP -->
-            <!-- ============================================= -->
 
             <a-cylinder
                 id="button-stop"
-
                 class="clickable"
-
                 position="0.18 1.72 0.36"
-
                 rotation="90 0 0"
-
                 radius="0.12"
-
                 height="0.12"
-
                 color="#FFB300"
-
-                control-button="
-                    action: stop
-                ">
+                control-button="action: stop">
             </a-cylinder>
 
-
-            <!-- ============================================= -->
-            <!-- EMERGENCY STOP -->
-            <!-- ============================================= -->
 
             <a-cylinder
                 id="button-emergency"
-
                 class="clickable"
-
                 position="-0.18 1.30 0.39"
-
                 rotation="90 0 0"
-
                 radius="0.17"
-
                 height="0.16"
-
                 color="#E00000"
-
-                control-button="
-                    action: emergency
-                ">
+                control-button="action: emergency">
             </a-cylinder>
 
-
-            <!-- ============================================= -->
-            <!-- RESET -->
-            <!-- ============================================= -->
 
             <a-cylinder
                 id="button-reset"
-
                 class="clickable"
-
                 position="0.18 1.30 0.36"
-
                 rotation="90 0 0"
-
                 radius="0.11"
-
                 height="0.12"
-
                 color="#1976D2"
-
-                control-button="
-                    action: reset
-                ">
+                control-button="action: reset">
             </a-cylinder>
 
 
-            <!-- ============================================= -->
             <!-- LABELS -->
-            <!-- ============================================= -->
 
             <a-text
                 value="START"
@@ -1696,7 +1360,7 @@
 
 
     <!-- ===================================================== -->
-    <!-- PLAYER / CAMERA -->
+    <!-- PLAYER -->
     <!-- ===================================================== -->
 
     <a-entity
