@@ -39,7 +39,7 @@
 
 
     <!-- ===================================================== -->
-    <!-- MOBILE SENSOR HUD STYLE -->
+    <!-- SENSOR / WEBXR HUD -->
     <!-- ===================================================== -->
 
     <style>
@@ -50,17 +50,21 @@
 
 
         body {
+
             margin: 0;
+
             overflow: hidden;
+
             font-family:
                 Arial,
                 Helvetica,
                 sans-serif;
+
         }
 
 
         /* =================================================== */
-        /* SENSOR TOGGLE */
+        /* TOGGLE BUTTON */
         /* =================================================== */
 
         #sensor-toggle {
@@ -83,7 +87,7 @@
                     20,
                     20,
                     20,
-                    0.85
+                    0.88
                 );
 
             color: white;
@@ -96,7 +100,7 @@
 
 
         /* =================================================== */
-        /* SENSOR PANEL */
+        /* PANEL */
         /* =================================================== */
 
         #sensor-panel {
@@ -108,7 +112,7 @@
 
             z-index: 9999;
 
-            width: 265px;
+            width: 285px;
 
             max-height:
                 calc(
@@ -117,7 +121,7 @@
 
             overflow-y: auto;
 
-            padding: 12px;
+            padding: 14px;
 
             border-radius: 8px;
 
@@ -126,7 +130,7 @@
                     10,
                     10,
                     10,
-                    0.82
+                    0.84
                 );
 
             color: white;
@@ -146,7 +150,9 @@
 
 
         #sensor-panel.visible {
+
             display: block;
+
         }
 
 
@@ -155,7 +161,7 @@
             margin:
                 0 0 10px 0;
 
-            font-size: 14px;
+            font-size: 15px;
 
         }
 
@@ -163,7 +169,7 @@
         #sensor-panel h4 {
 
             margin:
-                12px 0 4px 0;
+                13px 0 5px 0;
 
             font-size: 12px;
 
@@ -179,19 +185,83 @@
             justify-content:
                 space-between;
 
+            gap: 12px;
+
             margin: 3px 0;
 
         }
 
 
         .sensor-value {
+
             font-weight: bold;
+
+        }
+
+
+        /* =================================================== */
+        /* WEBXR DIAGNOSTICS */
+        /* =================================================== */
+
+        .diagnostic-section {
+
+            margin-top: 15px;
+
+            padding-top: 10px;
+
+            border-top:
+                1px solid
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.25
+                );
+
+        }
+
+
+        .diagnostic-title {
+
+            margin-bottom: 7px;
+
+            font-weight: bold;
+
+            color: #FFFFFF;
+
+        }
+
+
+        .diag-good {
+
+            color: #4CFF6A;
+
+            font-weight: bold;
+
+        }
+
+
+        .diag-bad {
+
+            color: #FF5C5C;
+
+            font-weight: bold;
+
+        }
+
+
+        .diag-warn {
+
+            color: #FFD54F;
+
+            font-weight: bold;
+
         }
 
 
         #sensor-status {
 
-            margin-top: 10px;
+            margin-top: 12px;
 
             font-size: 11px;
 
@@ -222,7 +292,7 @@
 
 
         /* =================================================== */
-        /* PHONE UI */
+        /* PHONE DISPLAY */
         /* =================================================== */
 
         @media
@@ -247,7 +317,7 @@
                 top: 48px;
                 right: 8px;
 
-                width: 225px;
+                width: 245px;
 
                 font-size: 11px;
 
@@ -264,7 +334,7 @@
 
 
 <!-- ========================================================= -->
-<!-- SENSOR HUD -->
+<!-- SENSOR / WEBXR HUD -->
 <!-- ========================================================= -->
 
 <button
@@ -275,7 +345,9 @@
 </button>
 
 
-<div id="sensor-panel">
+<div
+    id="sensor-panel"
+>
 
     <h3>
         Smartphone IMU
@@ -290,73 +362,103 @@
         Orientation [deg]
     </h4>
 
+
     <div class="sensor-row">
-        <span>Alpha</span>
+
+        <span>
+            Alpha
+        </span>
+
         <span
             id="orientation-alpha"
             class="sensor-value"
         >
             --
         </span>
+
     </div>
 
+
     <div class="sensor-row">
-        <span>Beta</span>
+
+        <span>
+            Beta
+        </span>
+
         <span
             id="orientation-beta"
             class="sensor-value"
         >
             --
         </span>
+
     </div>
 
+
     <div class="sensor-row">
-        <span>Gamma</span>
+
+        <span>
+            Gamma
+        </span>
+
         <span
             id="orientation-gamma"
             class="sensor-value"
         >
             --
         </span>
+
     </div>
 
 
     <!-- ===================================================== -->
-    <!-- LINEAR ACCELERATION -->
+    <!-- ACCELERATION -->
     <!-- ===================================================== -->
 
     <h4>
         Acceleration [m/s²]
     </h4>
 
+
     <div class="sensor-row">
+
         <span>X</span>
+
         <span
             id="acceleration-x"
             class="sensor-value"
         >
             --
         </span>
+
     </div>
 
+
     <div class="sensor-row">
+
         <span>Y</span>
+
         <span
             id="acceleration-y"
             class="sensor-value"
         >
             --
         </span>
+
     </div>
 
+
     <div class="sensor-row">
+
         <span>Z</span>
+
         <span
             id="acceleration-z"
             class="sensor-value"
         >
             --
         </span>
+
     </div>
 
 
@@ -368,34 +470,46 @@
         Acceleration + gravity [m/s²]
     </h4>
 
+
     <div class="sensor-row">
+
         <span>X</span>
+
         <span
             id="gravity-x"
             class="sensor-value"
         >
             --
         </span>
+
     </div>
 
+
     <div class="sensor-row">
+
         <span>Y</span>
+
         <span
             id="gravity-y"
             class="sensor-value"
         >
             --
         </span>
+
     </div>
 
+
     <div class="sensor-row">
+
         <span>Z</span>
+
         <span
             id="gravity-z"
             class="sensor-value"
         >
             --
         </span>
+
     </div>
 
 
@@ -407,38 +521,208 @@
         Rotation rate [deg/s]
     </h4>
 
+
     <div class="sensor-row">
-        <span>Alpha</span>
+
+        <span>
+            Alpha
+        </span>
+
         <span
             id="rotation-alpha"
             class="sensor-value"
         >
             --
         </span>
+
     </div>
 
+
     <div class="sensor-row">
-        <span>Beta</span>
+
+        <span>
+            Beta
+        </span>
+
         <span
             id="rotation-beta"
             class="sensor-value"
         >
             --
         </span>
+
     </div>
 
+
     <div class="sensor-row">
-        <span>Gamma</span>
+
+        <span>
+            Gamma
+        </span>
+
         <span
             id="rotation-gamma"
             class="sensor-value"
         >
             --
         </span>
+
     </div>
 
 
-    <div id="sensor-status">
+    <!-- ===================================================== -->
+    <!-- WEBXR COMPATIBILITY -->
+    <!-- ===================================================== -->
+
+    <div
+        class="diagnostic-section"
+    >
+
+        <div
+            class="diagnostic-title"
+        >
+            WebXR compatibility
+        </div>
+
+
+        <div class="sensor-row">
+
+            <span>
+                Secure context
+            </span>
+
+            <span
+                id="diag-secure-context"
+                class="diag-warn"
+            >
+                CHECKING
+            </span>
+
+        </div>
+
+
+        <div class="sensor-row">
+
+            <span>
+                WebXR API
+            </span>
+
+            <span
+                id="diag-webxr-api"
+                class="diag-warn"
+            >
+                CHECKING
+            </span>
+
+        </div>
+
+
+        <div class="sensor-row">
+
+            <span>
+                Immersive VR
+            </span>
+
+            <span
+                id="diag-immersive-vr"
+                class="diag-warn"
+            >
+                CHECKING
+            </span>
+
+        </div>
+
+
+        <div class="sensor-row">
+
+            <span>
+                Immersive AR
+            </span>
+
+            <span
+                id="diag-immersive-ar"
+                class="diag-warn"
+            >
+                CHECKING
+            </span>
+
+        </div>
+
+
+        <div class="sensor-row">
+
+            <span>
+                Orientation
+            </span>
+
+            <span
+                id="diag-orientation"
+                class="diag-warn"
+            >
+                WAITING
+            </span>
+
+        </div>
+
+
+        <div class="sensor-row">
+
+            <span>
+                Device motion
+            </span>
+
+            <span
+                id="diag-motion"
+                class="diag-warn"
+            >
+                WAITING
+            </span>
+
+        </div>
+
+
+        <h4>
+            Environment
+        </h4>
+
+
+        <div class="sensor-row">
+
+            <span>
+                Browser
+            </span>
+
+            <span
+                id="diag-browser"
+                class="sensor-value"
+            >
+                --
+            </span>
+
+        </div>
+
+
+        <div class="sensor-row">
+
+            <span>
+                Platform
+            </span>
+
+            <span
+                id="diag-platform"
+                class="sensor-value"
+            >
+                --
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <div
+        id="sensor-status"
+    >
         Waiting for sensors...
     </div>
 
@@ -513,7 +797,7 @@
 
 
     <!-- ===================================================== -->
-    <!-- INDUSTRIAL CELL -->
+    <!-- INDUSTRIAL CELL ROOT -->
     <!-- ===================================================== -->
 
     <a-entity
@@ -571,6 +855,7 @@
             color="#B0B0B0">
         </a-box>
 
+
         <a-box
             position="-2.2 0.35 0.45"
             width="0.18"
@@ -579,6 +864,7 @@
             color="#B0B0B0">
         </a-box>
 
+
         <a-box
             position="2.2 0.35 -0.45"
             width="0.18"
@@ -586,6 +872,7 @@
             depth="0.18"
             color="#B0B0B0">
         </a-box>
+
 
         <a-box
             position="2.2 0.35 0.45"
@@ -823,7 +1110,7 @@
 
 
             <!-- ============================================= -->
-            <!-- STATUS -->
+            <!-- STATUS LIGHTS -->
             <!-- ============================================= -->
 
             <a-sphere
@@ -1006,9 +1293,8 @@
     </a-entity>
 
 
-
     <!-- ===================================================== -->
-    <!-- USER / CAMERA -->
+    <!-- PLAYER / CAMERA -->
     <!-- ===================================================== -->
 
     <a-entity

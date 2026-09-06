@@ -1,99 +1,123 @@
 // =============================================================
-// MOBILE PLATFORM + SENSOR MONITOR
+// MOBILE PLATFORM + SENSOR + WEBXR DIAGNOSTICS
 // =============================================================
 
-AFRAME.registerComponent('mobile-platform', {
+AFRAME.registerComponent(
+    'mobile-platform',
+    {
 
-    init: function () {
+        init: function () {
 
-        this.isMobile =
-            /Android|iPhone|iPad|iPod|Mobile/i.test(
-                navigator.userAgent
-            );
-
-
-        const camera =
-            this.el.querySelector('#main-camera');
+            this.isMobile =
+                /Android|iPhone|iPad|iPod|Mobile/i.test(
+                    navigator.userAgent
+                );
 
 
-        if (!camera) {
-            return;
-        }
+            const camera =
+                this.el.querySelector(
+                    '#main-camera'
+                );
 
 
-        // =====================================================
-        // MOBILE
-        // =====================================================
-
-        if (this.isMobile) {
-
-            // No WASD translation on smartphone.
-            camera.setAttribute(
-                'wasd-controls',
-                'enabled',
-                false
-            );
+            if (!camera) {
+                return;
+            }
 
 
-            // IMU orientation only.
-            // Touch dragging and mouse rotation are disabled.
-            camera.setAttribute(
-                'look-controls',
-                {
-                    enabled: true,
-                    magicWindowTrackingEnabled: true,
-                    touchEnabled: false,
-                    mouseEnabled: false
-                }
-            );
+            // =================================================
+            // MOBILE
+            // =================================================
+
+            if (this.isMobile) {
+
+                // Smartphone:
+                // IMU controls orientation only.
+                // No artificial translation.
+
+                camera.setAttribute(
+                    'wasd-controls',
+                    {
+                        enabled: false
+                    }
+                );
 
 
-            document.body.classList.add(
-                'mobile-device'
-            );
+                camera.setAttribute(
+                    'look-controls',
+                    {
+                        enabled: true,
 
-        }
+                        magicWindowTrackingEnabled:
+                            true,
 
-        // =====================================================
-        // DESKTOP
-        // =====================================================
+                        touchEnabled:
+                            false,
 
-        else {
-
-            camera.setAttribute(
-                'wasd-controls',
-                {
-                    enabled: true,
-                    acceleration: 18
-                }
-            );
+                        mouseEnabled:
+                            false
+                    }
+                );
 
 
-            camera.setAttribute(
-                'look-controls',
-                {
-                    enabled: true,
-                    magicWindowTrackingEnabled: false,
-                    touchEnabled: true,
-                    mouseEnabled: true
-                }
-            );
+                document.body.classList.add(
+                    'mobile-device'
+                );
+
+            }
+
+
+            // =================================================
+            // DESKTOP
+            // =================================================
+
+            else {
+
+                camera.setAttribute(
+                    'wasd-controls',
+                    {
+                        enabled: true,
+                        acceleration: 18
+                    }
+                );
+
+
+                camera.setAttribute(
+                    'look-controls',
+                    {
+                        enabled: true,
+
+                        magicWindowTrackingEnabled:
+                            false,
+
+                        touchEnabled:
+                            true,
+
+                        mouseEnabled:
+                            true
+                    }
+                );
+
+            }
 
         }
 
     }
-
-});
+);
 
 
 
 // =============================================================
-// SENSOR HUD
+// SENSOR + WEBXR HUD
 // =============================================================
 
 document.addEventListener(
     'DOMContentLoaded',
     () => {
+
+        // =====================================================
+        // INTERFACE ELEMENTS
+        // =====================================================
 
         const sensorButton =
             document.getElementById(
@@ -113,7 +137,7 @@ document.addEventListener(
             );
 
 
-        const status =
+        const sensorStatus =
             document.getElementById(
                 'sensor-status'
             );
@@ -123,12 +147,14 @@ document.addEventListener(
             !sensorButton ||
             !sensorPanel
         ) {
+
             return;
+
         }
 
 
         // =====================================================
-        // SENSOR VALUES
+        // ORIENTATION VALUES
         // =====================================================
 
         const orientationAlpha =
@@ -147,6 +173,10 @@ document.addEventListener(
             );
 
 
+        // =====================================================
+        // ACCELERATION VALUES
+        // =====================================================
+
         const accelerationX =
             document.getElementById(
                 'acceleration-x'
@@ -163,6 +193,10 @@ document.addEventListener(
             );
 
 
+        // =====================================================
+        // ACCELERATION + GRAVITY
+        // =====================================================
+
         const gravityX =
             document.getElementById(
                 'gravity-x'
@@ -178,6 +212,10 @@ document.addEventListener(
                 'gravity-z'
             );
 
+
+        // =====================================================
+        // ROTATION RATE
+        // =====================================================
 
         const rotationAlpha =
             document.getElementById(
@@ -196,32 +234,315 @@ document.addEventListener(
 
 
         // =====================================================
-        // FORMAT SENSOR NUMBER
+        // WEBXR DIAGNOSTIC ELEMENTS
         // =====================================================
 
-        function formatValue(value) {
+        const secureContextValue =
+            document.getElementById(
+                'diag-secure-context'
+            );
+
+
+        const webxrApiValue =
+            document.getElementById(
+                'diag-webxr-api'
+            );
+
+
+        const immersiveVrValue =
+            document.getElementById(
+                'diag-immersive-vr'
+            );
+
+
+        const immersiveArValue =
+            document.getElementById(
+                'diag-immersive-ar'
+            );
+
+
+        const orientationStateValue =
+            document.getElementById(
+                'diag-orientation'
+            );
+
+
+        const motionStateValue =
+            document.getElementById(
+                'diag-motion'
+            );
+
+
+        const browserValue =
+            document.getElementById(
+                'diag-browser'
+            );
+
+
+        const platformValue =
+            document.getElementById(
+                'diag-platform'
+            );
+
+
+        // =====================================================
+        // SENSOR ACTIVITY STATES
+        // =====================================================
+
+        let orientationReceived =
+            false;
+
+
+        let motionReceived =
+            false;
+
+
+        // =====================================================
+        // FORMAT NUMBER
+        // =====================================================
+
+        function formatValue(
+            value
+        ) {
 
             if (
                 value === null ||
                 value === undefined ||
                 Number.isNaN(value)
             ) {
+
                 return '--';
+
             }
 
 
             return Number(
                 value
-            ).toFixed(2);
+            ).toFixed(
+                2
+            );
 
         }
 
 
         // =====================================================
-        // DEVICE ORIENTATION
+        // SET DIAGNOSTIC VALUE
         // =====================================================
 
-        function orientationHandler(event) {
+        function setDiagnostic(
+            element,
+            text,
+            state
+        ) {
+
+            if (!element) {
+                return;
+            }
+
+
+            element.textContent =
+                text;
+
+
+            element.classList.remove(
+                'diag-good',
+                'diag-bad',
+                'diag-warn'
+            );
+
+
+            if (
+                state === 'good'
+            ) {
+
+                element.classList.add(
+                    'diag-good'
+                );
+
+            }
+
+
+            else if (
+                state === 'bad'
+            ) {
+
+                element.classList.add(
+                    'diag-bad'
+                );
+
+            }
+
+
+            else {
+
+                element.classList.add(
+                    'diag-warn'
+                );
+
+            }
+
+        }
+
+
+        // =====================================================
+        // BROWSER DETECTION
+        // =====================================================
+
+        function detectBrowser() {
+
+            const userAgent =
+                navigator.userAgent;
+
+
+            if (
+                /Firefox/i.test(
+                    userAgent
+                )
+            ) {
+
+                return 'Firefox';
+
+            }
+
+
+            if (
+                /Edg/i.test(
+                    userAgent
+                )
+            ) {
+
+                return 'Microsoft Edge';
+
+            }
+
+
+            if (
+                /OPR|Opera/i.test(
+                    userAgent
+                )
+            ) {
+
+                return 'Opera';
+
+            }
+
+
+            if (
+                /SamsungBrowser/i.test(
+                    userAgent
+                )
+            ) {
+
+                return 'Samsung Internet';
+
+            }
+
+
+            if (
+                /Chrome|CriOS/i.test(
+                    userAgent
+                )
+            ) {
+
+                return 'Chrome / Chromium';
+
+            }
+
+
+            if (
+                /Safari/i.test(
+                    userAgent
+                )
+            ) {
+
+                return 'Safari';
+
+            }
+
+
+            return 'Unknown browser';
+
+        }
+
+
+        // =====================================================
+        // PLATFORM DETECTION
+        // =====================================================
+
+        function detectPlatform() {
+
+            const userAgent =
+                navigator.userAgent;
+
+
+            if (
+                /Android/i.test(
+                    userAgent
+                )
+            ) {
+
+                return 'Android';
+
+            }
+
+
+            if (
+                /iPhone|iPad|iPod/i.test(
+                    userAgent
+                )
+            ) {
+
+                return 'iOS / iPadOS';
+
+            }
+
+
+            if (
+                /Windows/i.test(
+                    userAgent
+                )
+            ) {
+
+                return 'Windows';
+
+            }
+
+
+            if (
+                /Macintosh|Mac OS/i.test(
+                    userAgent
+                )
+            ) {
+
+                return 'macOS';
+
+            }
+
+
+            if (
+                /Linux/i.test(
+                    userAgent
+                )
+            ) {
+
+                return 'Linux';
+
+            }
+
+
+            return navigator.platform ||
+                'Unknown platform';
+
+        }
+
+
+        // =====================================================
+        // DEVICE ORIENTATION EVENT
+        // =====================================================
+
+        function orientationHandler(
+            event
+        ) {
 
             orientationAlpha.textContent =
                 formatValue(
@@ -241,20 +562,39 @@ document.addEventListener(
                 );
 
 
-            status.textContent =
+            if (
+                !orientationReceived
+            ) {
+
+                orientationReceived =
+                    true;
+
+
+                setDiagnostic(
+                    orientationStateValue,
+                    'ACTIVE',
+                    'good'
+                );
+
+            }
+
+
+            sensorStatus.textContent =
                 'Orientation sensor active';
 
         }
 
 
         // =====================================================
-        // DEVICE MOTION
+        // DEVICE MOTION EVENT
         // =====================================================
 
-        function motionHandler(event) {
+        function motionHandler(
+            event
+        ) {
 
             // -------------------------------------------------
-            // Linear acceleration
+            // LINEAR ACCELERATION
             // -------------------------------------------------
 
             if (
@@ -266,10 +606,12 @@ document.addEventListener(
                         event.acceleration.x
                     );
 
+
                 accelerationY.textContent =
                     formatValue(
                         event.acceleration.y
                     );
+
 
                 accelerationZ.textContent =
                     formatValue(
@@ -280,11 +622,12 @@ document.addEventListener(
 
 
             // -------------------------------------------------
-            // Acceleration including gravity
+            // ACCELERATION INCLUDING GRAVITY
             // -------------------------------------------------
 
             if (
-                event.accelerationIncludingGravity
+                event
+                    .accelerationIncludingGravity
             ) {
 
                 gravityX.textContent =
@@ -294,12 +637,14 @@ document.addEventListener(
                             .x
                     );
 
+
                 gravityY.textContent =
                     formatValue(
                         event
                             .accelerationIncludingGravity
                             .y
                     );
+
 
                 gravityZ.textContent =
                     formatValue(
@@ -312,7 +657,7 @@ document.addEventListener(
 
 
             // -------------------------------------------------
-            // Gyroscope / rotation rate
+            // ROTATION RATE
             // -------------------------------------------------
 
             if (
@@ -324,15 +669,34 @@ document.addEventListener(
                         event.rotationRate.alpha
                     );
 
+
                 rotationBeta.textContent =
                     formatValue(
                         event.rotationRate.beta
                     );
 
+
                 rotationGamma.textContent =
                     formatValue(
                         event.rotationRate.gamma
                     );
+
+            }
+
+
+            if (
+                !motionReceived
+            ) {
+
+                motionReceived =
+                    true;
+
+
+                setDiagnostic(
+                    motionStateValue,
+                    'ACTIVE',
+                    'good'
+                );
 
             }
 
@@ -359,14 +723,28 @@ document.addEventListener(
             );
 
 
-            status.textContent =
+            sensorStatus.textContent =
                 'Waiting for sensor data...';
+
+
+            setDiagnostic(
+                orientationStateValue,
+                'WAITING',
+                'warn'
+            );
+
+
+            setDiagnostic(
+                motionStateValue,
+                'WAITING',
+                'warn'
+            );
 
         }
 
 
         // =====================================================
-        // REQUEST SENSOR PERMISSION
+        // SENSOR PERMISSION REQUEST
         // =====================================================
 
         async function requestSensorPermission() {
@@ -378,7 +756,7 @@ document.addEventListener(
             try {
 
                 // ---------------------------------------------
-                // iOS orientation permission
+                // DEVICE ORIENTATION PERMISSION
                 // ---------------------------------------------
 
                 if (
@@ -404,8 +782,16 @@ document.addEventListener(
                         'granted'
                     ) {
 
-                        status.textContent =
+                        sensorStatus.textContent =
                             'Orientation permission denied';
+
+
+                        setDiagnostic(
+                            orientationStateValue,
+                            'DENIED',
+                            'bad'
+                        );
+
 
                         return;
 
@@ -415,7 +801,7 @@ document.addEventListener(
 
 
                 // ---------------------------------------------
-                // iOS motion permission
+                // DEVICE MOTION PERMISSION
                 // ---------------------------------------------
 
                 if (
@@ -441,8 +827,16 @@ document.addEventListener(
                         'granted'
                     ) {
 
-                        status.textContent =
+                        sensorStatus.textContent =
                             'Motion permission denied';
+
+
+                        setDiagnostic(
+                            motionStateValue,
+                            'DENIED',
+                            'bad'
+                        );
+
 
                         return;
 
@@ -465,7 +859,10 @@ document.addEventListener(
 
             }
 
-            catch (error) {
+
+            catch (
+                error
+            ) {
 
                 console.error(
                     'Sensor permission error:',
@@ -473,14 +870,14 @@ document.addEventListener(
                 );
 
 
-                status.textContent =
+                sensorStatus.textContent =
                     'Sensor permission error';
 
             }
 
 
-            // Android and platforms that do not use
-            // explicit permission requests.
+            // Android and other platforms that
+            // do not require explicit permission.
 
             if (
                 !permissionNeeded
@@ -504,7 +901,201 @@ document.addEventListener(
 
 
         // =====================================================
-        // HUD TOGGLE
+        // WEBXR DIAGNOSTICS
+        // =====================================================
+
+        async function runWebXRDiagnostics() {
+
+            // -------------------------------------------------
+            // SECURE CONTEXT
+            // -------------------------------------------------
+
+            if (
+                window.isSecureContext
+            ) {
+
+                setDiagnostic(
+                    secureContextValue,
+                    'YES',
+                    'good'
+                );
+
+            }
+
+            else {
+
+                setDiagnostic(
+                    secureContextValue,
+                    'NO',
+                    'bad'
+                );
+
+            }
+
+
+            // -------------------------------------------------
+            // BROWSER + PLATFORM
+            // -------------------------------------------------
+
+            if (
+                browserValue
+            ) {
+
+                browserValue.textContent =
+                    detectBrowser();
+
+            }
+
+
+            if (
+                platformValue
+            ) {
+
+                platformValue.textContent =
+                    detectPlatform();
+
+            }
+
+
+            // -------------------------------------------------
+            // WEBXR API
+            // -------------------------------------------------
+
+            if (
+                !navigator.xr
+            ) {
+
+                setDiagnostic(
+                    webxrApiValue,
+                    'NO',
+                    'bad'
+                );
+
+
+                setDiagnostic(
+                    immersiveVrValue,
+                    'UNAVAILABLE',
+                    'bad'
+                );
+
+
+                setDiagnostic(
+                    immersiveArValue,
+                    'UNAVAILABLE',
+                    'bad'
+                );
+
+
+                return;
+
+            }
+
+
+            setDiagnostic(
+                webxrApiValue,
+                'YES',
+                'good'
+            );
+
+
+            // -------------------------------------------------
+            // IMMERSIVE VR
+            // -------------------------------------------------
+
+            try {
+
+                const vrSupported =
+                    await navigator.xr
+                        .isSessionSupported(
+                            'immersive-vr'
+                        );
+
+
+                setDiagnostic(
+                    immersiveVrValue,
+
+                    vrSupported
+                        ? 'YES'
+                        : 'NO',
+
+                    vrSupported
+                        ? 'good'
+                        : 'bad'
+                );
+
+            }
+
+
+            catch (
+                error
+            ) {
+
+                console.error(
+                    'Immersive VR check error:',
+                    error
+                );
+
+
+                setDiagnostic(
+                    immersiveVrValue,
+                    'ERROR',
+                    'bad'
+                );
+
+            }
+
+
+            // -------------------------------------------------
+            // IMMERSIVE AR
+            // -------------------------------------------------
+
+            try {
+
+                const arSupported =
+                    await navigator.xr
+                        .isSessionSupported(
+                            'immersive-ar'
+                        );
+
+
+                setDiagnostic(
+                    immersiveArValue,
+
+                    arSupported
+                        ? 'YES'
+                        : 'NO',
+
+                    arSupported
+                        ? 'good'
+                        : 'bad'
+                );
+
+            }
+
+
+            catch (
+                error
+            ) {
+
+                console.error(
+                    'Immersive AR check error:',
+                    error
+                );
+
+
+                setDiagnostic(
+                    immersiveArValue,
+                    'ERROR',
+                    'bad'
+                );
+
+            }
+
+        }
+
+
+        // =====================================================
+        // SENSOR PANEL TOGGLE
         // =====================================================
 
         sensorButton.addEventListener(
@@ -548,10 +1139,10 @@ document.addEventListener(
 
 
         // =====================================================
-        // AUTO START WHERE PERMISSION IS NOT REQUIRED
+        // AUTO START SENSOR LISTENERS
         // =====================================================
 
-        const requiresIOSPermission =
+        const requiresExplicitPermission =
             (
                 typeof DeviceOrientationEvent !==
                     'undefined'
@@ -572,7 +1163,7 @@ document.addEventListener(
 
 
         if (
-            !requiresIOSPermission
+            !requiresExplicitPermission
         ) {
 
             startSensors();
@@ -588,6 +1179,13 @@ document.addEventListener(
             }
 
         }
+
+
+        // =====================================================
+        // RUN WEBXR TEST
+        // =====================================================
+
+        runWebXRDiagnostics();
 
     }
 );
