@@ -1,22 +1,4 @@
 // =============================================================
-// INDUSTRIAL CONVEYOR / PROCESS CONTROL
-// =============================================================
-//
-// Main characteristics:
-//
-// - All workpieces are driven by ONE common belt displacement.
-// - Relative spacing between boxes can therefore never drift.
-// - Workpieces wrap around the conveyor while preserving spacing.
-// - A workpiece stops exactly at the processing station.
-// - The actuator lowers, processes the box and raises again.
-// - Processed boxes turn green.
-// - When a box wraps back to the beginning, it becomes orange.
-// - START / STOP / E-STOP / RESET remain functional.
-//
-// =============================================================
-
-
-// =============================================================
 // INDUSTRIAL CYCLE
 // =============================================================
 

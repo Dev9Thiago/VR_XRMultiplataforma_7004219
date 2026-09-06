@@ -36,19 +36,11 @@
     <!-- PROJECT SCRIPTS -->
     <!-- ===================================================== -->
 
-    <script
-        src="scripts/conveyor.js">
-    </script>
+    <script src="scripts/conveyor.js"></script>
 
+    <script src="scripts/mobile-sensors.js"></script>
 
-    <script
-        src="scripts/mobile-sensors.js">
-    </script>
-
-
-    <script
-        src="scripts/ar-placement.js">
-    </script>
+    <script src="scripts/ar-placement.js"></script>
 
 
     <!-- ===================================================== -->
@@ -106,6 +98,10 @@
             color: white;
 
             font-size: 14px;
+
+            cursor: pointer;
+
+            touch-action: manipulation;
 
         }
 
@@ -258,45 +254,61 @@
             color:
                 white;
 
+            touch-action:
+                manipulation;
+
         }
 
 
         /* =================================================== */
-        /* AR OVERLAY */
+        /* AR DOM OVERLAY ROOT */
         /* =================================================== */
 
         #ar-overlay {
 
             position: fixed;
 
-            left: 0;
-            right: 0;
-
-            bottom: 24px;
+            inset: 0;
 
             z-index: 20000;
 
             display: none;
-
-            flex-direction: column;
-
-            align-items: center;
-
-            justify-content: center;
-
-            gap: 10px;
 
             pointer-events: none;
 
         }
 
 
+        /* WebXR explicitly identifies this element as the
+           immersive AR DOM overlay. */
+
+        #ar-overlay:xr-overlay {
+
+            display: block !important;
+
+        }
+
+
+        /* =================================================== */
+        /* AR INSTRUCTION */
+        /* =================================================== */
+
         #ar-instruction {
 
-            max-width: 90vw;
+            position: absolute;
 
-            padding:
-                10px 16px;
+            right: 14px;
+
+            bottom: 188px;
+
+            width: min(
+                300px,
+                calc(
+                    100vw - 28px
+                )
+            );
+
+            padding: 9px 12px;
 
             border-radius: 8px;
 
@@ -305,84 +317,187 @@
                     10,
                     10,
                     10,
-                    0.78
+                    0.75
                 );
 
             color: white;
 
             text-align: center;
 
-            font-size: 14px;
+            font-size: 12px;
+
+            pointer-events: none;
 
         }
 
 
-        #ar-controls {
+        /* =================================================== */
+        /* AR CONTROL PANEL */
+        /* =================================================== */
 
-            display: flex;
+        #ar-control-panel {
 
-            gap: 10px;
+            position: absolute;
 
-            align-items: center;
+            right: 14px;
 
-            justify-content: center;
+            bottom: 18px;
 
-            pointer-events: auto;
+            width: 260px;
 
-        }
+            padding: 12px;
 
-
-        .ar-control-button {
-
-            height: 44px;
-
-            padding:
-                0 16px;
-
-            border: none;
-
-            border-radius: 8px;
+            border-radius: 10px;
 
             background:
                 rgba(
-                    20,
-                    20,
-                    20,
+                    15,
+                    15,
+                    15,
                     0.88
                 );
 
             color: white;
 
-            font-size: 14px;
+            pointer-events: auto;
+
+            touch-action: manipulation;
+
+            user-select: none;
+
+            -webkit-user-select: none;
 
         }
 
 
-        #ar-rotate {
+        .ar-control-title {
+
+            margin-bottom: 8px;
+
+            font-size: 13px;
+
+            font-weight: bold;
+
+        }
+
+
+        .ar-row {
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content:
+                space-between;
+
+            gap: 8px;
+
+            margin-top: 8px;
+
+        }
+
+
+        .ar-small-text {
+
+            font-size: 11px;
+
+            color:
+                #DDDDDD;
+
+        }
+
+
+        /* =================================================== */
+        /* ROTATION SLIDER */
+        /* =================================================== */
+
+        #ar-rotation-slider {
+
+            width: 180px;
+
+            height: 30px;
+
+            margin: 0;
+
+            padding: 0;
+
+            pointer-events: auto;
+
+            touch-action: none;
+
+        }
+
+
+        #ar-rotation-value {
+
+            min-width: 45px;
+
+            padding: 5px 7px;
+
+            border-radius: 5px;
 
             background:
                 rgba(
-                    35,
-                    35,
-                    35,
-                    0.92
+                    255,
+                    255,
+                    255,
+                    0.12
                 );
+
+            text-align: center;
+
+            font-family:
+                Consolas,
+                monospace;
+
+            font-size: 12px;
 
         }
 
+
+        /* =================================================== */
+        /* REPOSITION BUTTON */
+        /* =================================================== */
 
         #ar-reposition {
 
+            width: 100%;
+
+            height: 40px;
+
+            margin-top: 10px;
+
+            border: none;
+
+            border-radius: 7px;
+
             background:
-                rgba(
-                    25,
-                    118,
-                    210,
-                    0.92
-                );
+                #1976D2;
+
+            color: white;
+
+            font-size: 13px;
+
+            font-weight: bold;
+
+            pointer-events: auto;
+
+            touch-action: manipulation;
 
         }
 
+
+        #ar-reposition:disabled,
+        #ar-rotation-slider:disabled {
+
+            opacity: 0.45;
+
+        }
+
+
+        /* =================================================== */
+        /* PHONE DISPLAY */
+        /* =================================================== */
 
         @media
         (
@@ -392,8 +507,12 @@
             #sensor-toggle {
 
                 top: 8px;
-
                 right: 8px;
+
+                padding:
+                    8px 11px;
+
+                font-size: 12px;
 
             }
 
@@ -401,7 +520,6 @@
             #sensor-panel {
 
                 top: 48px;
-
                 right: 8px;
 
                 width: 245px;
@@ -409,21 +527,34 @@
             }
 
 
-            #ar-instruction {
+            #ar-control-panel {
 
-                font-size: 12px;
+                right: 10px;
+                bottom: 12px;
+
+                width: 230px;
+
+                padding: 10px;
 
             }
 
 
-            .ar-control-button {
+            #ar-instruction {
 
-                height: 42px;
+                right: 10px;
 
-                padding:
-                    0 13px;
+                bottom: 174px;
 
-                font-size: 13px;
+                width: 230px;
+
+                font-size: 11px;
+
+            }
+
+
+            #ar-rotation-slider {
+
+                width: 150px;
 
             }
 
@@ -464,44 +595,20 @@
 
 
     <div class="sensor-row">
-
         <span>Alpha</span>
-
-        <span
-            id="orientation-alpha"
-            class="sensor-value"
-        >
-            --
-        </span>
-
+        <span id="orientation-alpha" class="sensor-value">--</span>
     </div>
 
 
     <div class="sensor-row">
-
         <span>Beta</span>
-
-        <span
-            id="orientation-beta"
-            class="sensor-value"
-        >
-            --
-        </span>
-
+        <span id="orientation-beta" class="sensor-value">--</span>
     </div>
 
 
     <div class="sensor-row">
-
         <span>Gamma</span>
-
-        <span
-            id="orientation-gamma"
-            class="sensor-value"
-        >
-            --
-        </span>
-
+        <span id="orientation-gamma" class="sensor-value">--</span>
     </div>
 
 
@@ -511,44 +618,20 @@
 
 
     <div class="sensor-row">
-
         <span>X</span>
-
-        <span
-            id="acceleration-x"
-            class="sensor-value"
-        >
-            --
-        </span>
-
+        <span id="acceleration-x" class="sensor-value">--</span>
     </div>
 
 
     <div class="sensor-row">
-
         <span>Y</span>
-
-        <span
-            id="acceleration-y"
-            class="sensor-value"
-        >
-            --
-        </span>
-
+        <span id="acceleration-y" class="sensor-value">--</span>
     </div>
 
 
     <div class="sensor-row">
-
         <span>Z</span>
-
-        <span
-            id="acceleration-z"
-            class="sensor-value"
-        >
-            --
-        </span>
-
+        <span id="acceleration-z" class="sensor-value">--</span>
     </div>
 
 
@@ -558,44 +641,20 @@
 
 
     <div class="sensor-row">
-
         <span>X</span>
-
-        <span
-            id="gravity-x"
-            class="sensor-value"
-        >
-            --
-        </span>
-
+        <span id="gravity-x" class="sensor-value">--</span>
     </div>
 
 
     <div class="sensor-row">
-
         <span>Y</span>
-
-        <span
-            id="gravity-y"
-            class="sensor-value"
-        >
-            --
-        </span>
-
+        <span id="gravity-y" class="sensor-value">--</span>
     </div>
 
 
     <div class="sensor-row">
-
         <span>Z</span>
-
-        <span
-            id="gravity-z"
-            class="sensor-value"
-        >
-            --
-        </span>
-
+        <span id="gravity-z" class="sensor-value">--</span>
     </div>
 
 
@@ -605,50 +664,24 @@
 
 
     <div class="sensor-row">
-
         <span>Alpha</span>
-
-        <span
-            id="rotation-alpha"
-            class="sensor-value"
-        >
-            --
-        </span>
-
+        <span id="rotation-alpha" class="sensor-value">--</span>
     </div>
 
 
     <div class="sensor-row">
-
         <span>Beta</span>
-
-        <span
-            id="rotation-beta"
-            class="sensor-value"
-        >
-            --
-        </span>
-
+        <span id="rotation-beta" class="sensor-value">--</span>
     </div>
 
 
     <div class="sensor-row">
-
         <span>Gamma</span>
-
-        <span
-            id="rotation-gamma"
-            class="sensor-value"
-        >
-            --
-        </span>
-
+        <span id="rotation-gamma" class="sensor-value">--</span>
     </div>
 
 
-    <div
-        class="diagnostic-section"
-    >
+    <div class="diagnostic-section">
 
         <strong>
             WebXR compatibility
@@ -656,98 +689,38 @@
 
 
         <div class="sensor-row">
-
-            <span>
-                Secure context
-            </span>
-
-            <span
-                id="diag-secure-context"
-                class="diag-warn"
-            >
-                CHECKING
-            </span>
-
+            <span>Secure context</span>
+            <span id="diag-secure-context" class="diag-warn">CHECKING</span>
         </div>
 
 
         <div class="sensor-row">
-
-            <span>
-                WebXR API
-            </span>
-
-            <span
-                id="diag-webxr-api"
-                class="diag-warn"
-            >
-                CHECKING
-            </span>
-
+            <span>WebXR API</span>
+            <span id="diag-webxr-api" class="diag-warn">CHECKING</span>
         </div>
 
 
         <div class="sensor-row">
-
-            <span>
-                Immersive VR
-            </span>
-
-            <span
-                id="diag-immersive-vr"
-                class="diag-warn"
-            >
-                CHECKING
-            </span>
-
+            <span>Immersive VR</span>
+            <span id="diag-immersive-vr" class="diag-warn">CHECKING</span>
         </div>
 
 
         <div class="sensor-row">
-
-            <span>
-                Immersive AR
-            </span>
-
-            <span
-                id="diag-immersive-ar"
-                class="diag-warn"
-            >
-                CHECKING
-            </span>
-
+            <span>Immersive AR</span>
+            <span id="diag-immersive-ar" class="diag-warn">CHECKING</span>
         </div>
 
 
         <div class="sensor-row">
-
-            <span>
-                Orientation
-            </span>
-
-            <span
-                id="diag-orientation"
-                class="diag-warn"
-            >
-                WAITING
-            </span>
-
+            <span>Orientation</span>
+            <span id="diag-orientation" class="diag-warn">WAITING</span>
         </div>
 
 
         <div class="sensor-row">
-
-            <span>
-                Device motion
-            </span>
-
-            <span
-                id="diag-motion"
-                class="diag-warn"
-            >
-                WAITING
-            </span>
-
+            <span>Device motion</span>
+            <span id="diag-motion" class="diag-warn">WAITING</span>
         </div>
 
 
@@ -757,40 +730,20 @@
 
 
         <div class="sensor-row">
-
-            <span>
-                Browser
-            </span>
-
-            <span
-                id="diag-browser"
-            >
-                --
-            </span>
-
+            <span>Browser</span>
+            <span id="diag-browser">--</span>
         </div>
 
 
         <div class="sensor-row">
-
-            <span>
-                Platform
-            </span>
-
-            <span
-                id="diag-platform"
-            >
-                --
-            </span>
-
+            <span>Platform</span>
+            <span id="diag-platform">--</span>
         </div>
 
     </div>
 
 
-    <div
-        id="sensor-status"
-    >
+    <div id="sensor-status">
         Waiting for sensors...
     </div>
 
@@ -806,42 +759,94 @@
 
 
 <!-- ========================================================= -->
-<!-- AR UI -->
+<!-- AR DOM OVERLAY -->
 <!-- ========================================================= -->
 
-<div
-    id="ar-overlay"
->
+<div id="ar-overlay">
 
-    <div
-        id="ar-instruction"
-    >
-        Move the phone slowly and point at a floor or table.
+
+    <div id="ar-instruction">
+
+        Scan a floor or table slowly.
+
     </div>
 
 
-    <div
-        id="ar-controls"
-    >
+    <div id="ar-control-panel">
+
+
+        <div class="ar-control-title">
+            AR Placement
+        </div>
+
+
+        <div class="ar-row">
+
+            <span class="ar-small-text">
+                Rotation
+            </span>
+
+            <span id="ar-rotation-value">
+                0°
+            </span>
+
+        </div>
+
+
+        <div class="ar-row">
+
+            <input
+
+                id="ar-rotation-slider"
+
+                type="range"
+
+                min="0"
+
+                max="360"
+
+                step="1"
+
+                value="0"
+
+                disabled
+            >
+
+        </div>
+
+
+        <div class="ar-row">
+
+            <span class="ar-small-text">
+                Distance
+            </span>
+
+            <span
+                id="ar-distance-value"
+                class="ar-small-text"
+            >
+                --
+            </span>
+
+        </div>
+
 
         <button
-            id="ar-rotate"
-            class="ar-control-button"
-            type="button"
-        >
-            Rotate 45°
-        </button>
 
-
-        <button
             id="ar-reposition"
-            class="ar-control-button"
+
             type="button"
+
+            disabled
         >
+
             Reposition
+
         </button>
 
+
     </div>
+
 
 </div>
 
@@ -863,13 +868,8 @@
 
     webxr="
         referenceSpaceType: local;
-        optionalFeatures:
-            hit-test,
-            dom-overlay,
-            local-floor,
-            bounded-floor;
-        overlayElement:
-            #ar-overlay
+        optionalFeatures: hit-test, dom-overlay, local-floor, bounded-floor;
+        overlayElement: #ar-overlay
     "
 
     background="
@@ -908,12 +908,11 @@
             opacity: 0.95
         "
     >
-
     </a-ring>
 
 
     <!-- ===================================================== -->
-    <!-- LIGHTING -->
+    <!-- LIGHTS -->
     <!-- ===================================================== -->
 
     <a-light
@@ -932,7 +931,7 @@
 
 
     <!-- ===================================================== -->
-    <!-- FLOOR -->
+    <!-- NORMAL VIRTUAL FLOOR -->
     <!-- ===================================================== -->
 
     <a-plane
@@ -951,7 +950,6 @@
 
         roughness="0.9"
     >
-
     </a-plane>
 
 
@@ -1002,9 +1000,7 @@
         </a-box>
 
 
-        <!-- ================================================= -->
         <!-- SUPPORTS -->
-        <!-- ================================================= -->
 
         <a-box
             position="-2.2 0.35 -0.45"
@@ -1042,9 +1038,7 @@
         </a-box>
 
 
-        <!-- ================================================= -->
         <!-- ROLLERS -->
-        <!-- ================================================= -->
 
         <a-cylinder
             position="-2.72 0.95 0"
@@ -1327,9 +1321,7 @@
                 radius="0.12"
                 height="0.12"
                 color="#00AA33"
-                control-button="
-                    action: start
-                ">
+                control-button="action: start">
             </a-cylinder>
 
 
@@ -1343,9 +1335,7 @@
                 radius="0.12"
                 height="0.12"
                 color="#FFB300"
-                control-button="
-                    action: stop
-                ">
+                control-button="action: stop">
             </a-cylinder>
 
 
@@ -1359,9 +1349,7 @@
                 radius="0.17"
                 height="0.16"
                 color="#E00000"
-                control-button="
-                    action: emergency
-                ">
+                control-button="action: emergency">
             </a-cylinder>
 
 
@@ -1375,9 +1363,7 @@
                 radius="0.11"
                 height="0.12"
                 color="#1976D2"
-                control-button="
-                    action: reset
-                ">
+                control-button="action: reset">
             </a-cylinder>
 
 
@@ -1453,7 +1439,6 @@
                     objects: .clickable
                 "
             >
-
             </a-cursor>
 
         </a-camera>

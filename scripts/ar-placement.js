@@ -1,26 +1,3 @@
-// =============================================================
-// AR SURFACE PLACEMENT
-// =============================================================
-//
-// Features:
-//
-// 1. Detects AR mode.
-// 2. Enables camera passthrough.
-// 3. Hides the virtual desktop floor in AR.
-// 4. Detects real surfaces using WebXR hit testing.
-// 5. Shows a reticle on valid detected surfaces.
-// 6. Tap to place the industrial cell.
-// 7. Keeps a FIXED world scale so the model behaves like
-//    a real-world object:
-//       - move phone closer -> model appears larger
-//       - move phone farther -> model appears smaller
-// 8. Allows rotation around the vertical axis.
-// 9. Allows repositioning.
-// 10. Restores the normal desktop / mobile / VR scene on exit.
-//
-// =============================================================
-
-
 AFRAME.registerComponent(
     'ar-placement',
     {
@@ -65,15 +42,33 @@ AFRAME.registerComponent(
                 );
 
 
-            this.rotateButton =
+            this.controlPanel =
                 document.querySelector(
-                    '#ar-rotate'
+                    '#ar-control-panel'
+                );
+
+
+            this.rotationSlider =
+                document.querySelector(
+                    '#ar-rotation-slider'
+                );
+
+
+            this.rotationValue =
+                document.querySelector(
+                    '#ar-rotation-value'
                 );
 
 
             this.repositionButton =
                 document.querySelector(
                     '#ar-reposition'
+                );
+
+
+            this.distanceValue =
+                document.querySelector(
+                    '#ar-distance-value'
                 );
 
 
@@ -110,37 +105,7 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // AR MODEL SETTINGS
-            // =================================================
-
-            // Fixed real-world scale.
-            //
-            // Once the object is placed this value does not
-            // change automatically or through UI controls.
-            //
-            // The apparent size changes naturally when the
-            // user physically moves the smartphone.
-
-            this.arScale =
-                0.30;
-
-
-            // Current rotation around world Y-axis.
-
-            this.rotationY =
-                0;
-
-
-            // Rotation step per button press.
-
-            this.rotationStep =
-                THREE.MathUtils.degToRad(
-                    45
-                );
-
-
-            // =================================================
-            // LAST VALID HIT
+            // PLACEMENT DATA
             // =================================================
 
             this.lastHitPosition =
@@ -151,8 +116,43 @@ AFRAME.registerComponent(
                 new THREE.Quaternion();
 
 
+            // Once placed, this is the fixed world position.
+
+            this.lockedPosition =
+                new THREE.Vector3();
+
+
+            // Rotation around Y.
+
+            this.rotationDegrees =
+                0;
+
+
+            this.rotationRadians =
+                0;
+
+
             // =================================================
-            // SAVE ORIGINAL NON-AR TRANSFORM
+            // FIXED AR SCALE
+            // =================================================
+            //
+            // IMPORTANT:
+            //
+            // This stays CONSTANT after placement.
+            //
+            // That is what produces real-world behavior:
+            //
+            // closer camera = larger apparent object
+            // farther camera = smaller apparent object
+            //
+            // =================================================
+
+            this.arScale =
+                0.30;
+
+
+            // =================================================
+            // SAVE NORMAL NON-AR TRANSFORM
             // =================================================
 
             this.normalPosition =
@@ -184,8 +184,8 @@ AFRAME.registerComponent(
                 'enter-vr',
                 () => {
 
-                    // A-Frame may need a brief moment before
-                    // ar-mode becomes available.
+                    // A-Frame may take a short moment to
+                    // update the ar-mode state.
 
                     setTimeout(
                         () => {
@@ -229,18 +229,26 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // ROTATE BUTTON
+            // ROTATION SLIDER
             // =================================================
 
             if (
-                this.rotateButton
+                this.rotationSlider
             ) {
 
-                this.rotateButton.addEventListener(
-                    'click',
-                    () => {
+                this.rotationSlider.addEventListener(
+                    'input',
+                    (event) => {
 
-                        this.rotatePlacedModel();
+                        const value =
+                            Number(
+                                event.target.value
+                            );
+
+
+                        this.setRotation(
+                            value
+                        );
 
                     }
                 );
@@ -258,7 +266,12 @@ AFRAME.registerComponent(
 
                 this.repositionButton.addEventListener(
                     'click',
-                    () => {
+                    (event) => {
+
+                        event.preventDefault();
+
+                        event.stopPropagation();
+
 
                         this.resetPlacement();
 
@@ -268,23 +281,100 @@ AFRAME.registerComponent(
             }
 
 
-            // Prevent AR UI buttons from also triggering
-            // a WebXR placement select event.
+            // =================================================
+            // DOM OVERLAY INPUT PROTECTION
+            // =================================================
+            //
+            // Prevent interactions with the overlay controls
+            // from also becoming XR "select" placement events.
+            //
+            // =================================================
 
-            if (
-                this.overlay
-            ) {
+            const interactiveElements =
+                [
+                    this.rotationSlider,
+                    this.repositionButton
+                ];
 
-                this.overlay.addEventListener(
-                    'beforexrselect',
-                    (event) => {
 
-                        event.preventDefault();
+            interactiveElements.forEach(
+                (element) => {
+
+                    if (
+                        !element
+                    ) {
+
+                        return;
 
                     }
-                );
 
-            }
+
+                    element.addEventListener(
+                        'beforexrselect',
+                        (event) => {
+
+                            event.preventDefault();
+
+                        }
+                    );
+
+
+                    element.addEventListener(
+                        'pointerdown',
+                        (event) => {
+
+                            event.stopPropagation();
+
+                        }
+                    );
+
+
+                    element.addEventListener(
+                        'pointerup',
+                        (event) => {
+
+                            event.stopPropagation();
+
+                        }
+                    );
+
+
+                    element.addEventListener(
+                        'touchstart',
+                        (event) => {
+
+                            event.stopPropagation();
+
+                        },
+                        {
+                            passive: true
+                        }
+                    );
+
+
+                    element.addEventListener(
+                        'touchend',
+                        (event) => {
+
+                            event.stopPropagation();
+
+                        },
+                        {
+                            passive: true
+                        }
+                    );
+
+                }
+            );
+
+
+            // =================================================
+            // INITIAL UI VALUES
+            // =================================================
+
+            this.updateRotationLabel();
+
+            this.updateControlState();
 
         },
 
@@ -318,7 +408,7 @@ AFRAME.registerComponent(
             ) {
 
                 console.error(
-                    'AR session not available.'
+                    'AR session is unavailable.'
                 );
 
                 return;
@@ -347,8 +437,49 @@ AFRAME.registerComponent(
                 false;
 
 
-            this.rotationY =
+            this.rotationDegrees =
                 0;
+
+
+            this.rotationRadians =
+                0;
+
+
+            if (
+                this.rotationSlider
+            ) {
+
+                this.rotationSlider.value =
+                    '0';
+
+            }
+
+
+            this.updateRotationLabel();
+
+
+            // =================================================
+            // DIAGNOSTIC: DOM OVERLAY
+            // =================================================
+
+            if (
+                session.domOverlayState
+            ) {
+
+                console.log(
+                    'WebXR DOM overlay active:',
+                    session.domOverlayState.type
+                );
+
+            }
+
+            else {
+
+                console.warn(
+                    'WebXR DOM overlay was not granted.'
+                );
+
+            }
 
 
             // =================================================
@@ -375,7 +506,7 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // HIDE VIRTUAL FLOOR
+            // HIDE NORMAL VIRTUAL FLOOR
             // =================================================
 
             if (
@@ -391,7 +522,7 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // HIDE CELL UNTIL PLACED
+            // HIDE MODEL BEFORE PLACEMENT
             // =================================================
 
             this.cell
@@ -413,30 +544,31 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // SHOW AR OVERLAY
+            // SHOW DOM OVERLAY
             // =================================================
 
             if (
                 this.overlay
             ) {
 
-                this.overlay
-                    .style
-                    .display =
-                        'flex';
+                this.overlay.style.display =
+                    'block';
 
             }
 
 
+            this.updateControlState();
+
+
             this.setInstruction(
-                'Move the phone slowly and point at a floor or table.'
+                'Scan a floor or table slowly.'
             );
 
 
             try {
 
                 // =================================================
-                // VIEWER SPACE
+                // VIEWER REFERENCE SPACE
                 // =================================================
 
                 this.viewerSpace =
@@ -447,7 +579,7 @@ AFRAME.registerComponent(
 
 
                 // =================================================
-                // LOCAL SPACE
+                // WORLD / LOCAL REFERENCE SPACE
                 // =================================================
 
                 this.referenceSpace =
@@ -469,7 +601,7 @@ AFRAME.registerComponent(
                 ) {
 
                     throw new Error(
-                        'WebXR hit testing is not supported.'
+                        'WebXR hit-test API unavailable.'
                     );
 
                 }
@@ -486,7 +618,7 @@ AFRAME.registerComponent(
 
 
                 console.log(
-                    'AR hit-test source created.'
+                    'AR hit testing initialized.'
                 );
 
 
@@ -528,7 +660,7 @@ AFRAME.registerComponent(
 
 
                 this.setInstruction(
-                    'Surface detection could not be initialized.'
+                    'Surface detection initialization failed.'
                 );
 
             }
@@ -537,16 +669,83 @@ AFRAME.registerComponent(
 
 
         // =====================================================
-        // XR FRAME UPDATE
+        // MAIN FRAME LOOP
         // =====================================================
 
         tick: function () {
 
             if (
                 !this.arActive
-                ||
+            ) {
+
+                return;
+
+            }
+
+
+            // =================================================
+            // MODEL HAS ALREADY BEEN PLACED
+            // =================================================
+
+            if (
                 this.placed
-                ||
+            ) {
+
+                // -------------------------------------------------
+                // EXPLICIT WORLD-SPACE LOCK
+                // -------------------------------------------------
+                //
+                // Keep reapplying the placement transform.
+                //
+                // Camera translation must NOT move the model.
+                //
+                // -------------------------------------------------
+
+                this.cell
+                    .object3D
+                    .position
+                    .copy(
+                        this.lockedPosition
+                    );
+
+
+                this.cell
+                    .object3D
+                    .rotation
+                    .set(
+                        0,
+                        this.rotationRadians,
+                        0
+                    );
+
+
+                this.cell
+                    .object3D
+                    .scale
+                    .set(
+                        this.arScale,
+                        this.arScale,
+                        this.arScale
+                    );
+
+
+                // -------------------------------------------------
+                // SHOW REAL CAMERA-TO-MODEL DISTANCE
+                // -------------------------------------------------
+
+                this.updateDistanceDisplay();
+
+
+                return;
+
+            }
+
+
+            // =================================================
+            // SEARCHING FOR PLACEMENT SURFACE
+            // =================================================
+
+            if (
                 !this.hitTestSource
                 ||
                 !this.referenceSpace
@@ -597,7 +796,7 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // NO SURFACE FOUND
+            // NO SURFACE
             // =================================================
 
             if (
@@ -631,7 +830,7 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // VALID SURFACE FOUND
+            // SURFACE DETECTED
             // =================================================
 
             const pose =
@@ -711,19 +910,21 @@ AFRAME.registerComponent(
 
 
             this.setInstruction(
-                'Surface detected - tap to place the industrial cell.'
+                'Surface detected - tap to place.'
             );
 
         },
 
 
         // =====================================================
-        // PLACE INDUSTRIAL CELL
+        // PLACE MODEL
         // =====================================================
 
         placeCell: function () {
 
             if (
+                !this.arActive
+                ||
                 !this.hasHit
                 ||
                 this.placed
@@ -735,26 +936,28 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // POSITION
+            // STORE THE WORLD POSITION PERMANENTLY
+            // =================================================
+
+            this.lockedPosition.copy(
+                this.lastHitPosition
+            );
+
+
+            // =================================================
+            // APPLY WORLD POSITION
             // =================================================
 
             this.cell
                 .object3D
                 .position
                 .copy(
-                    this.lastHitPosition
+                    this.lockedPosition
                 );
 
 
             // =================================================
-            // FIXED SCALE
-            // =================================================
-            //
-            // No automatic scaling.
-            //
-            // The model now behaves like a real-world object:
-            // physical camera translation changes its apparent
-            // size naturally through perspective.
+            // APPLY FIXED PHYSICAL SCALE
             // =================================================
 
             this.cell
@@ -771,16 +974,12 @@ AFRAME.registerComponent(
             // INITIAL ROTATION
             // =================================================
 
-            this.rotationY =
-                0;
-
-
             this.cell
                 .object3D
                 .rotation
                 .set(
                     0,
-                    this.rotationY,
+                    this.rotationRadians,
                     0
                 );
 
@@ -807,26 +1006,98 @@ AFRAME.registerComponent(
             }
 
 
+            this.updateControlState();
+
+
             this.setInstruction(
-                'Placed - move around the model naturally or use Rotate.'
+                'Placed - walk around the model.'
             );
 
 
             console.log(
-                'Industrial cell placed in AR.'
+                'AR model locked at:',
+                this.lockedPosition
             );
 
         },
 
 
         // =====================================================
-        // ROTATE PLACED MODEL
+        // SET ROTATION FROM SLIDER
         // =====================================================
 
-        rotatePlacedModel: function () {
+        setRotation: function (
+            degrees
+        ) {
+
+            this.rotationDegrees =
+                THREE.MathUtils.clamp(
+                    degrees,
+                    0,
+                    360
+                );
+
+
+            this.rotationRadians =
+                THREE.MathUtils.degToRad(
+                    this.rotationDegrees
+                );
+
 
             if (
-                !this.arActive
+                this.placed
+            ) {
+
+                this.cell
+                    .object3D
+                    .rotation
+                    .set(
+                        0,
+                        this.rotationRadians,
+                        0
+                    );
+
+            }
+
+
+            this.updateRotationLabel();
+
+        },
+
+
+        // =====================================================
+        // UPDATE ROTATION LABEL
+        // =====================================================
+
+        updateRotationLabel: function () {
+
+            if (
+                !this.rotationValue
+            ) {
+
+                return;
+
+            }
+
+
+            this.rotationValue.textContent =
+                Math.round(
+                    this.rotationDegrees
+                )
+                +
+                '°';
+
+        },
+
+
+        // =====================================================
+        // DISTANCE DISPLAY
+        // =====================================================
+
+        updateDistanceDisplay: function () {
+
+            if (
+                !this.distanceValue
                 ||
                 !this.placed
             ) {
@@ -836,54 +1107,50 @@ AFRAME.registerComponent(
             }
 
 
-            this.rotationY +=
-                this.rotationStep;
+            const camera =
+                document.querySelector(
+                    '#main-camera'
+                );
 
-
-            // Wrap angle after one complete revolution.
 
             if (
-                this.rotationY >=
-                Math.PI * 2
+                !camera
             ) {
 
-                this.rotationY -=
-                    Math.PI * 2;
+                return;
 
             }
 
 
-            this.cell
+            const cameraPosition =
+                new THREE.Vector3();
+
+
+            camera
                 .object3D
-                .rotation
-                .set(
-                    0,
-                    this.rotationY,
-                    0
+                .getWorldPosition(
+                    cameraPosition
                 );
 
 
-            const degrees =
-                Math.round(
-                    THREE.MathUtils.radToDeg(
-                        this.rotationY
-                    )
+            const distance =
+                cameraPosition.distanceTo(
+                    this.lockedPosition
                 );
 
 
-            this.setInstruction(
-                'Model rotation: '
+            this.distanceValue.textContent =
+                distance.toFixed(
+                    2
+                )
                 +
-                degrees
-                +
-                '°'
-            );
+                ' m';
 
         },
 
 
         // =====================================================
-        // REPOSITION MODEL
+        // REPOSITION
         // =====================================================
 
         resetPlacement: function () {
@@ -905,10 +1172,6 @@ AFRAME.registerComponent(
                 false;
 
 
-            this.rotationY =
-                0;
-
-
             this.cell
                 .object3D
                 .visible =
@@ -927,15 +1190,56 @@ AFRAME.registerComponent(
             }
 
 
+            if (
+                this.distanceValue
+            ) {
+
+                this.distanceValue.textContent =
+                    '--';
+
+            }
+
+
+            this.updateControlState();
+
+
             this.setInstruction(
-                'Move the phone and select another surface.'
+                'Scan another floor or table surface.'
             );
 
         },
 
 
         // =====================================================
-        // INSTRUCTION TEXT
+        // CONTROL AVAILABILITY
+        // =====================================================
+
+        updateControlState: function () {
+
+            if (
+                this.rotationSlider
+            ) {
+
+                this.rotationSlider.disabled =
+                    !this.placed;
+
+            }
+
+
+            if (
+                this.repositionButton
+            ) {
+
+                this.repositionButton.disabled =
+                    !this.placed;
+
+            }
+
+        },
+
+
+        // =====================================================
+        // SET INSTRUCTION
         // =====================================================
 
         setInstruction: function (
@@ -946,9 +1250,8 @@ AFRAME.registerComponent(
                 this.instruction
             ) {
 
-                this.instruction
-                    .textContent =
-                        text;
+                this.instruction.textContent =
+                    text;
 
             }
 
@@ -956,7 +1259,7 @@ AFRAME.registerComponent(
 
 
         // =====================================================
-        // EXIT AR
+        // LEAVE AR
         // =====================================================
 
         stopAR: function () {
@@ -967,7 +1270,7 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // REMOVE SELECT EVENT
+            // REMOVE XR SELECT EVENT
             // =================================================
 
             if (
@@ -1003,7 +1306,7 @@ AFRAME.registerComponent(
                 ) {
 
                     console.warn(
-                        'AR hit-test cleanup warning:',
+                        'Hit-test cleanup warning:',
                         error
                     );
 
@@ -1013,7 +1316,7 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // RESET XR STATE
+            // RESET INTERNAL STATE
             // =================================================
 
             this.session =
@@ -1048,22 +1351,24 @@ AFRAME.registerComponent(
                 false;
 
 
-            this.rotationY =
+            this.rotationDegrees =
+                0;
+
+
+            this.rotationRadians =
                 0;
 
 
             // =================================================
-            // HIDE AR UI
+            // HIDE AR OVERLAY
             // =================================================
 
             if (
                 this.overlay
             ) {
 
-                this.overlay
-                    .style
-                    .display =
-                        'none';
+                this.overlay.style.display =
+                    'none';
 
             }
 
@@ -1081,7 +1386,7 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // RESTORE VIRTUAL FLOOR
+            // RESTORE FLOOR
             // =================================================
 
             if (
@@ -1097,7 +1402,7 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // RESTORE NORMAL BACKGROUND
+            // RESTORE BACKGROUND
             // =================================================
 
             this.sceneEl.setAttribute(
@@ -1108,7 +1413,7 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // RESTORE NORMAL CELL TRANSFORM
+            // RESTORE INDUSTRIAL CELL
             // =================================================
 
             this.cell
@@ -1139,6 +1444,31 @@ AFRAME.registerComponent(
                 .copy(
                     this.normalScale
                 );
+
+
+            if (
+                this.rotationSlider
+            ) {
+
+                this.rotationSlider.value =
+                    '0';
+
+            }
+
+
+            if (
+                this.distanceValue
+            ) {
+
+                this.distanceValue.textContent =
+                    '--';
+
+            }
+
+
+            this.updateRotationLabel();
+
+            this.updateControlState();
 
         }
 
