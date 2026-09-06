@@ -272,15 +272,19 @@
             left: 0;
             right: 0;
 
-            bottom: 25px;
+            bottom: 24px;
 
             z-index: 20000;
 
             display: none;
 
-            justify-content: center;
+            flex-direction: column;
 
             align-items: center;
+
+            justify-content: center;
+
+            gap: 10px;
 
             pointer-events: none;
 
@@ -289,31 +293,93 @@
 
         #ar-instruction {
 
+            max-width: 90vw;
+
             padding:
                 10px 16px;
 
-            max-width:
-                90vw;
-
-            border-radius:
-                8px;
+            border-radius: 8px;
 
             background:
                 rgba(
                     10,
                     10,
                     10,
-                    0.80
+                    0.78
                 );
 
-            color:
-                white;
+            color: white;
 
-            text-align:
-                center;
+            text-align: center;
 
-            font-size:
-                14px;
+            font-size: 14px;
+
+        }
+
+
+        #ar-controls {
+
+            display: flex;
+
+            gap: 10px;
+
+            align-items: center;
+
+            justify-content: center;
+
+            pointer-events: auto;
+
+        }
+
+
+        .ar-control-button {
+
+            height: 44px;
+
+            padding:
+                0 16px;
+
+            border: none;
+
+            border-radius: 8px;
+
+            background:
+                rgba(
+                    20,
+                    20,
+                    20,
+                    0.88
+                );
+
+            color: white;
+
+            font-size: 14px;
+
+        }
+
+
+        #ar-rotate {
+
+            background:
+                rgba(
+                    35,
+                    35,
+                    35,
+                    0.92
+                );
+
+        }
+
+
+        #ar-reposition {
+
+            background:
+                rgba(
+                    25,
+                    118,
+                    210,
+                    0.92
+                );
 
         }
 
@@ -346,6 +412,18 @@
             #ar-instruction {
 
                 font-size: 12px;
+
+            }
+
+
+            .ar-control-button {
+
+                height: 42px;
+
+                padding:
+                    0 13px;
+
+                font-size: 13px;
 
             }
 
@@ -728,7 +806,7 @@
 
 
 <!-- ========================================================= -->
-<!-- AR INSTRUCTIONS -->
+<!-- AR UI -->
 <!-- ========================================================= -->
 
 <div
@@ -739,6 +817,30 @@
         id="ar-instruction"
     >
         Move the phone slowly and point at a floor or table.
+    </div>
+
+
+    <div
+        id="ar-controls"
+    >
+
+        <button
+            id="ar-rotate"
+            class="ar-control-button"
+            type="button"
+        >
+            Rotate 45°
+        </button>
+
+
+        <button
+            id="ar-reposition"
+            class="ar-control-button"
+            type="button"
+        >
+            Reposition
+        </button>
+
     </div>
 
 </div>
@@ -761,8 +863,13 @@
 
     webxr="
         referenceSpaceType: local;
-        optionalFeatures: hit-test, dom-overlay, local-floor, bounded-floor;
-        overlayElement: #ar-overlay
+        optionalFeatures:
+            hit-test,
+            dom-overlay,
+            local-floor,
+            bounded-floor;
+        overlayElement:
+            #ar-overlay
     "
 
     background="
@@ -1055,7 +1162,7 @@
 
 
         <!-- ================================================= -->
-        <!-- SENSOR POSTS -->
+        <!-- LEFT SENSOR -->
         <!-- ================================================= -->
 
         <a-box
@@ -1079,6 +1186,10 @@
             ">
         </a-sphere>
 
+
+        <!-- ================================================= -->
+        <!-- RIGHT SENSOR -->
+        <!-- ================================================= -->
 
         <a-box
             position="2.0 1.65 -0.75"
@@ -1156,7 +1267,7 @@
             </a-box>
 
 
-            <!-- STATUS -->
+            <!-- STATUS LIGHTS -->
 
             <a-sphere
                 id="panel-green"
@@ -1206,7 +1317,7 @@
             </a-text>
 
 
-            <!-- BUTTONS -->
+            <!-- START -->
 
             <a-cylinder
                 id="button-start"
@@ -1216,9 +1327,13 @@
                 radius="0.12"
                 height="0.12"
                 color="#00AA33"
-                control-button="action: start">
+                control-button="
+                    action: start
+                ">
             </a-cylinder>
 
+
+            <!-- STOP -->
 
             <a-cylinder
                 id="button-stop"
@@ -1228,9 +1343,13 @@
                 radius="0.12"
                 height="0.12"
                 color="#FFB300"
-                control-button="action: stop">
+                control-button="
+                    action: stop
+                ">
             </a-cylinder>
 
+
+            <!-- EMERGENCY -->
 
             <a-cylinder
                 id="button-emergency"
@@ -1240,9 +1359,13 @@
                 radius="0.17"
                 height="0.16"
                 color="#E00000"
-                control-button="action: emergency">
+                control-button="
+                    action: emergency
+                ">
             </a-cylinder>
 
+
+            <!-- RESET -->
 
             <a-cylinder
                 id="button-reset"
@@ -1252,7 +1375,9 @@
                 radius="0.11"
                 height="0.12"
                 color="#1976D2"
-                control-button="action: reset">
+                control-button="
+                    action: reset
+                ">
             </a-cylinder>
 
 
@@ -1299,7 +1424,7 @@
 
 
     <!-- ===================================================== -->
-    <!-- PLAYER -->
+    <!-- PLAYER / CAMERA -->
     <!-- ===================================================== -->
 
     <a-entity
