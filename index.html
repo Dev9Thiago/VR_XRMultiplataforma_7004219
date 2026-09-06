@@ -58,20 +58,15 @@
     <style>
 
         * {
-
-            box-sizing:
-                border-box;
-
+            box-sizing: border-box;
         }
 
 
         body {
 
-            margin:
-                0;
+            margin: 0;
 
-            overflow:
-                hidden;
+            overflow: hidden;
 
             font-family:
                 Arial,
@@ -87,26 +82,18 @@
 
         #sensor-toggle {
 
-            position:
-                fixed;
+            position: fixed;
 
-            top:
-                12px;
+            top: 12px;
+            right: 12px;
 
-            right:
-                12px;
+            z-index: 10000;
 
-            z-index:
-                10000;
+            padding: 10px 14px;
 
-            padding:
-                10px 14px;
+            border: none;
 
-            border:
-                none;
-
-            border-radius:
-                7px;
+            border-radius: 7px;
 
             background:
                 rgba(
@@ -116,11 +103,9 @@
                     0.88
                 );
 
-            color:
-                white;
+            color: white;
 
-            font-size:
-                14px;
+            font-size: 14px;
 
         }
 
@@ -131,34 +116,25 @@
 
         #sensor-panel {
 
-            position:
-                fixed;
+            position: fixed;
 
-            top:
-                60px;
+            top: 60px;
+            right: 12px;
 
-            right:
-                12px;
+            z-index: 9999;
 
-            z-index:
-                9999;
-
-            width:
-                285px;
+            width: 285px;
 
             max-height:
                 calc(
                     100vh - 80px
                 );
 
-            overflow-y:
-                auto;
+            overflow-y: auto;
 
-            padding:
-                14px;
+            padding: 14px;
 
-            border-radius:
-                8px;
+            border-radius: 8px;
 
             background:
                 rgba(
@@ -168,35 +144,26 @@
                     0.84
                 );
 
-            color:
-                white;
+            color: white;
 
             font-family:
                 Consolas,
                 monospace;
 
-            font-size:
-                12px;
+            font-size: 12px;
 
-            display:
-                none;
+            display: none;
 
         }
 
 
         #sensor-panel.visible {
-
-            display:
-                block;
-
+            display: block;
         }
 
 
         #sensor-panel h3 {
-
-            margin:
-                0 0 10px 0;
-
+            margin: 0 0 10px 0;
         }
 
 
@@ -213,36 +180,28 @@
 
         .sensor-row {
 
-            display:
-                flex;
+            display: flex;
 
             justify-content:
                 space-between;
 
-            gap:
-                12px;
+            gap: 12px;
 
-            margin:
-                3px 0;
+            margin: 3px 0;
 
         }
 
 
         .sensor-value {
-
-            font-weight:
-                bold;
-
+            font-weight: bold;
         }
 
 
         .diagnostic-section {
 
-            margin-top:
-                15px;
+            margin-top: 15px;
 
-            padding-top:
-                10px;
+            padding-top: 10px;
 
             border-top:
                 1px solid
@@ -257,33 +216,23 @@
 
 
         .diag-good {
-
-            color:
-                #4CFF6A;
-
+            color: #4CFF6A;
         }
 
 
         .diag-bad {
-
-            color:
-                #FF5C5C;
-
+            color: #FF5C5C;
         }
 
 
         .diag-warn {
-
-            color:
-                #FFD54F;
-
+            color: #FFD54F;
         }
 
 
         #sensor-status {
 
-            margin-top:
-                12px;
+            margin-top: 12px;
 
             color:
                 #AAAAAA;
@@ -293,20 +242,15 @@
 
         #sensor-permission {
 
-            width:
-                100%;
+            width: 100%;
 
-            margin-top:
-                10px;
+            margin-top: 10px;
 
-            padding:
-                8px;
+            padding: 8px;
 
-            border:
-                none;
+            border: none;
 
-            border-radius:
-                5px;
+            border-radius: 5px;
 
             background:
                 #1976D2;
@@ -323,32 +267,22 @@
 
         #ar-overlay {
 
-            position:
-                fixed;
+            position: fixed;
 
-            left:
-                0;
+            left: 0;
+            right: 0;
 
-            right:
-                0;
+            bottom: 25px;
 
-            bottom:
-                25px;
+            z-index: 20000;
 
-            z-index:
-                20000;
+            display: none;
 
-            display:
-                none;
+            justify-content: center;
 
-            justify-content:
-                center;
+            align-items: center;
 
-            align-items:
-                center;
-
-            pointer-events:
-                none;
+            pointer-events: none;
 
         }
 
@@ -391,33 +325,27 @@
 
             #sensor-toggle {
 
-                top:
-                    8px;
+                top: 8px;
 
-                right:
-                    8px;
+                right: 8px;
 
             }
 
 
             #sensor-panel {
 
-                top:
-                    48px;
+                top: 48px;
 
-                right:
-                    8px;
+                right: 8px;
 
-                width:
-                    245px;
+                width: 245px;
 
             }
 
 
             #ar-instruction {
 
-                font-size:
-                    12px;
+                font-size: 12px;
 
             }
 
@@ -752,7 +680,9 @@
 
         <div class="sensor-row">
 
-            <span>Browser</span>
+            <span>
+                Browser
+            </span>
 
             <span
                 id="diag-browser"
@@ -765,7 +695,9 @@
 
         <div class="sensor-row">
 
-            <span>Platform</span>
+            <span>
+                Platform
+            </span>
 
             <span
                 id="diag-platform"
@@ -796,7 +728,7 @@
 
 
 <!-- ========================================================= -->
-<!-- AR INSTRUCTION OVERLAY -->
+<!-- AR INSTRUCTIONS -->
 <!-- ========================================================= -->
 
 <div
@@ -839,7 +771,8 @@
 
     renderer="
         colorManagement: true;
-        physicallyCorrectLights: true
+        physicallyCorrectLights: true;
+        alpha: true
     "
 >
 
@@ -896,6 +829,8 @@
     <!-- ===================================================== -->
 
     <a-plane
+
+        id="virtual-floor"
 
         position="0 0 -5"
 
@@ -960,7 +895,9 @@
         </a-box>
 
 
+        <!-- ================================================= -->
         <!-- SUPPORTS -->
+        <!-- ================================================= -->
 
         <a-box
             position="-2.2 0.35 -0.45"
@@ -998,7 +935,9 @@
         </a-box>
 
 
+        <!-- ================================================= -->
         <!-- ROLLERS -->
+        <!-- ================================================= -->
 
         <a-cylinder
             position="-2.72 0.95 0"

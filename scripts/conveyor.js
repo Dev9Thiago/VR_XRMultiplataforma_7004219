@@ -1,65 +1,23 @@
 // =============================================================
-// CONTROL BUTTON COMPONENT
+// INDUSTRIAL CONVEYOR / PROCESS CONTROL
 // =============================================================
-
-AFRAME.registerComponent(
-    'control-button',
-    {
-
-        schema: {
-
-            action: {
-                type: 'string',
-                default: ''
-            }
-
-        },
-
-
-        init: function () {
-
-            this.el.addEventListener(
-                'click',
-                () => {
-
-                    const industrialCell =
-                        document.querySelector(
-                            '#industrial-cell'
-                        );
-
-
-                    if (!industrialCell) {
-                        return;
-                    }
-
-
-                    const cycle =
-                        industrialCell.components[
-                            'industrial-cycle'
-                        ];
-
-
-                    if (!cycle) {
-                        return;
-                    }
-
-
-                    cycle.handleControlAction(
-                        this.data.action
-                    );
-
-                }
-            );
-
-        }
-
-    }
-);
-
+//
+// Main characteristics:
+//
+// - All workpieces are driven by ONE common belt displacement.
+// - Relative spacing between boxes can therefore never drift.
+// - Workpieces wrap around the conveyor while preserving spacing.
+// - A workpiece stops exactly at the processing station.
+// - The actuator lowers, processes the box and raises again.
+// - Processed boxes turn green.
+// - When a box wraps back to the beginning, it becomes orange.
+// - START / STOP / E-STOP / RESET remain functional.
+//
+// =============================================================
 
 
 // =============================================================
-// INDUSTRIAL AUTOMATIC CYCLE
+// INDUSTRIAL CYCLE
 // =============================================================
 
 AFRAME.registerComponent(
@@ -67,7 +25,7 @@ AFRAME.registerComponent(
     {
 
         // =====================================================
-        // SETTINGS
+        // SCHEMA
         // =====================================================
 
         schema: {
@@ -77,42 +35,35 @@ AFRAME.registerComponent(
                 default: 0.6
             },
 
-
             minX: {
                 type: 'number',
                 default: -2.4
             },
-
 
             maxX: {
                 type: 'number',
                 default: 2.4
             },
 
-
             stationX: {
                 type: 'number',
                 default: 0
             },
-
 
             lowerDistance: {
                 type: 'number',
                 default: 0.28
             },
 
-
             lowerDuration: {
                 type: 'number',
                 default: 700
             },
 
-
             processingDuration: {
                 type: 'number',
                 default: 1100
             },
-
 
             raiseDuration: {
                 type: 'number',
@@ -129,32 +80,48 @@ AFRAME.registerComponent(
         init: function () {
 
             // -------------------------------------------------
-            // Workpieces
+            // WORKPIECES
             // -------------------------------------------------
-
-            const elements =
-                this.el.querySelectorAll(
-                    '.workpiece'
-                );
-
 
             this.workpieces =
                 Array.from(
-                    elements
-                ).map(
-                    (element) => {
+                    this.el.querySelectorAll(
+                        '.workpiece'
+                    )
+                );
+
+
+            // Store the INITIAL X position of every workpiece.
+            //
+            // These offsets never change.
+            //
+            // All future movement is calculated from:
+            //
+            // initialPosition + commonBeltDistance
+
+            this.workpieceData =
+                this.workpieces.map(
+                    (workpiece) => {
 
                         return {
 
-                            el: element,
+                            el:
+                                workpiece,
 
-                            processed: false,
-
-                            previousX:
-                                element
+                            initialX:
+                                workpiece
                                     .object3D
                                     .position
-                                    .x
+                                    .x,
+
+                            previousX:
+                                workpiece
+                                    .object3D
+                                    .position
+                                    .x,
+
+                            processed:
+                                false
 
                         };
 
@@ -163,144 +130,820 @@ AFRAME.registerComponent(
 
 
             // -------------------------------------------------
-            // Actuator
+            // MASTER BELT POSITION
+            // -------------------------------------------------
+
+            this.beltDistance =
+                0;
+
+
+            // -------------------------------------------------
+            // PROCESSING EQUIPMENT
             // -------------------------------------------------
 
             this.actuator =
-                this.el.querySelector(
+                document.querySelector(
                     '#processing-actuator'
                 );
 
 
             this.tool =
-                this.el.querySelector(
+                document.querySelector(
                     '#processing-tool'
                 );
 
 
+            if (
+                this.actuator
+            ) {
+
+                this.actuatorBaseY =
+                    this.actuator
+                        .object3D
+                        .position
+                        .y;
+
+            }
+
+
+            if (
+                this.tool
+            ) {
+
+                this.toolBaseY =
+                    this.tool
+                        .object3D
+                        .position
+                        .y;
+
+            }
+
+
             // -------------------------------------------------
-            // Sensors
+            // CURRENT PROCESSING BOX
             // -------------------------------------------------
 
-            this.leftSensor =
-                this.el.querySelector(
-                    '#sensor-left-indicator'
-                );
-
-
-            this.rightSensor =
-                this.el.querySelector(
-                    '#sensor-right-indicator'
-                );
+            this.currentWorkpiece =
+                null;
 
 
             // -------------------------------------------------
-            // Panel indicators
+            // PROCESS STATE
+            // -------------------------------------------------
+            //
+            // idle
+            // lowering
+            // processing
+            // raising
+            // -------------------------------------------------
+
+            this.processState =
+                'idle';
+
+
+            this.processElapsed =
+                0;
+
+
+            // -------------------------------------------------
+            // SYSTEM STATE
+            // -------------------------------------------------
+
+            this.running =
+                true;
+
+
+            this.emergency =
+                false;
+
+
+            // -------------------------------------------------
+            // COLORS
+            // -------------------------------------------------
+
+            this.unprocessedColor =
+                '#FF8C42';
+
+
+            this.processedColor =
+                '#2E8B3C';
+
+
+            // -------------------------------------------------
+            // STATUS LIGHTS
             // -------------------------------------------------
 
             this.greenLight =
-                this.el.querySelector(
+                document.querySelector(
                     '#panel-green'
                 );
 
 
             this.yellowLight =
-                this.el.querySelector(
+                document.querySelector(
                     '#panel-yellow'
                 );
 
 
             this.redLight =
-                this.el.querySelector(
+                document.querySelector(
                     '#panel-red'
                 );
 
 
             // -------------------------------------------------
-            // Actuator positions
+            // INITIALIZE DISPLAY
             // -------------------------------------------------
 
-            this.actuatorTopY =
-                this.actuator
-                    .object3D
-                    .position
-                    .y;
+            this.updateAllWorkpieces();
 
-
-            this.toolTopY =
-                this.tool
-                    .object3D
-                    .position
-                    .y;
-
-
-            this.actuatorBottomY =
-                this.actuatorTopY -
-                this.data.lowerDistance;
-
-
-            this.toolBottomY =
-                this.toolTopY -
-                this.data.lowerDistance;
-
-
-            // -------------------------------------------------
-            // Process state
-            // -------------------------------------------------
-
-            this.state =
-                'RUNNING';
-
-
-            this.stateTime =
-                0;
-
-
-            this.activeWorkpiece =
-                null;
-
-
-            // -------------------------------------------------
-            // User control state
-            // -------------------------------------------------
-
-            this.userStopped =
-                false;
-
-
-            this.emergencyActive =
-                false;
-
-
-            // -------------------------------------------------
-            // Initial indicators
-            // -------------------------------------------------
-
-            this.setRunningIndicators();
+            this.updateStatusLights();
 
         },
 
 
         // =====================================================
-        // MAIN LOOP
+        // WRAP POSITION
+        // =====================================================
+
+        wrapX: function (
+            x
+        ) {
+
+            const minX =
+                this.data.minX;
+
+
+            const maxX =
+                this.data.maxX;
+
+
+            const range =
+                maxX - minX;
+
+
+            // Proper modulo operation that also works
+            // with negative numbers.
+
+            return (
+                (
+                    (
+                        x - minX
+                    )
+                    %
+                    range
+                )
+                +
+                range
+            )
+            %
+            range
+            +
+            minX;
+
+        },
+
+
+        // =====================================================
+        // UPDATE ALL BOX POSITIONS
+        // =====================================================
+
+        updateAllWorkpieces: function () {
+
+            this.workpieceData.forEach(
+                (data) => {
+
+                    const rawX =
+                        data.initialX
+                        +
+                        this.beltDistance;
+
+
+                    const newX =
+                        this.wrapX(
+                            rawX
+                        );
+
+
+                    // -------------------------------------------------
+                    // DETECT WRAP
+                    // -------------------------------------------------
+                    //
+                    // The conveyor travels toward +X.
+                    //
+                    // If previous X was near maxX and the new X
+                    // suddenly appears near minX, this workpiece
+                    // completed one conveyor lap.
+                    // -------------------------------------------------
+
+                    if (
+                        data.previousX >
+                        newX + 1.0
+                    ) {
+
+                        data.processed =
+                            false;
+
+
+                        data.el.setAttribute(
+                            'color',
+                            this.unprocessedColor
+                        );
+
+                    }
+
+
+                    data.el
+                        .object3D
+                        .position
+                        .x =
+                            newX;
+
+
+                    data.previousX =
+                        newX;
+
+                }
+            );
+
+        },
+
+
+        // =====================================================
+        // CHECK FOR PROCESSING STATION
+        // =====================================================
+
+        checkProcessingStation: function () {
+
+            if (
+                this.processState !==
+                'idle'
+            ) {
+
+                return;
+
+            }
+
+
+            const stationX =
+                this.data.stationX;
+
+
+            // Search for an UNPROCESSED box that has just
+            // crossed the processing station.
+
+            for (
+                let i = 0;
+                i <
+                this.workpieceData.length;
+                i++
+            ) {
+
+                const data =
+                    this.workpieceData[i];
+
+
+                if (
+                    data.processed
+                ) {
+
+                    continue;
+
+                }
+
+
+                const currentX =
+                    data.el
+                        .object3D
+                        .position
+                        .x;
+
+
+                // Allow a small detection window.
+
+                const detectionTolerance =
+                    0.025;
+
+
+                if (
+                    currentX >=
+                        stationX
+                    &&
+                    currentX <=
+                        stationX
+                        +
+                        detectionTolerance
+                ) {
+
+                    // Place the box EXACTLY at station X.
+
+                    const correction =
+                        currentX
+                        -
+                        stationX;
+
+
+                    this.beltDistance -=
+                        correction;
+
+
+                    this.updateAllWorkpieces();
+
+
+                    data.el
+                        .object3D
+                        .position
+                        .x =
+                            stationX;
+
+
+                    this.startProcessing(
+                        data
+                    );
+
+
+                    break;
+
+                }
+
+            }
+
+        },
+
+
+        // =====================================================
+        // BEGIN PROCESS
+        // =====================================================
+
+        startProcessing: function (
+            data
+        ) {
+
+            if (
+                this.processState !==
+                'idle'
+            ) {
+
+                return;
+
+            }
+
+
+            this.currentWorkpiece =
+                data;
+
+
+            this.processState =
+                'lowering';
+
+
+            this.processElapsed =
+                0;
+
+        },
+
+
+        // =====================================================
+        // PROCESSING STATE MACHINE
+        // =====================================================
+
+        updateProcessing: function (
+            dt
+        ) {
+
+            if (
+                this.processState ===
+                'idle'
+            ) {
+
+                return;
+
+            }
+
+
+            this.processElapsed +=
+                dt;
+
+
+            // =================================================
+            // LOWER ACTUATOR
+            // =================================================
+
+            if (
+                this.processState ===
+                'lowering'
+            ) {
+
+                const progress =
+                    Math.min(
+                        this.processElapsed
+                        /
+                        this.data
+                            .lowerDuration,
+                        1
+                    );
+
+
+                const displacement =
+                    this.data
+                        .lowerDistance
+                    *
+                    progress;
+
+
+                this.setActuatorDisplacement(
+                    displacement
+                );
+
+
+                if (
+                    progress >= 1
+                ) {
+
+                    this.processState =
+                        'processing';
+
+
+                    this.processElapsed =
+                        0;
+
+
+                    // Box becomes processed.
+
+                    if (
+                        this.currentWorkpiece
+                    ) {
+
+                        this.currentWorkpiece
+                            .processed =
+                                true;
+
+
+                        this.currentWorkpiece
+                            .el
+                            .setAttribute(
+                                'color',
+                                this.processedColor
+                            );
+
+                    }
+
+                }
+
+
+                return;
+
+            }
+
+
+            // =================================================
+            // PROCESSING WAIT
+            // =================================================
+
+            if (
+                this.processState ===
+                'processing'
+            ) {
+
+                if (
+                    this.processElapsed >=
+                    this.data
+                        .processingDuration
+                ) {
+
+                    this.processState =
+                        'raising';
+
+
+                    this.processElapsed =
+                        0;
+
+                }
+
+
+                return;
+
+            }
+
+
+            // =================================================
+            // RAISE ACTUATOR
+            // =================================================
+
+            if (
+                this.processState ===
+                'raising'
+            ) {
+
+                const progress =
+                    Math.min(
+                        this.processElapsed
+                        /
+                        this.data
+                            .raiseDuration,
+                        1
+                    );
+
+
+                const displacement =
+                    this.data
+                        .lowerDistance
+                    *
+                    (
+                        1 - progress
+                    );
+
+
+                this.setActuatorDisplacement(
+                    displacement
+                );
+
+
+                if (
+                    progress >= 1
+                ) {
+
+                    this.setActuatorDisplacement(
+                        0
+                    );
+
+
+                    this.processState =
+                        'idle';
+
+
+                    this.processElapsed =
+                        0;
+
+
+                    this.currentWorkpiece =
+                        null;
+
+                }
+
+            }
+
+        },
+
+
+        // =====================================================
+        // ACTUATOR POSITION
+        // =====================================================
+
+        setActuatorDisplacement:
+        function (
+            displacement
+        ) {
+
+            if (
+                this.actuator
+            ) {
+
+                this.actuator
+                    .object3D
+                    .position
+                    .y =
+                        this.actuatorBaseY
+                        -
+                        displacement;
+
+            }
+
+
+            if (
+                this.tool
+            ) {
+
+                this.tool
+                    .object3D
+                    .position
+                    .y =
+                        this.toolBaseY
+                        -
+                        displacement;
+
+            }
+
+        },
+
+
+        // =====================================================
+        // START
+        // =====================================================
+
+        startSystem: function () {
+
+            if (
+                this.emergency
+            ) {
+
+                return;
+
+            }
+
+
+            this.running =
+                true;
+
+
+            this.updateStatusLights();
+
+        },
+
+
+        // =====================================================
+        // STOP
+        // =====================================================
+
+        stopSystem: function () {
+
+            if (
+                this.emergency
+            ) {
+
+                return;
+
+            }
+
+
+            this.running =
+                false;
+
+
+            this.updateStatusLights();
+
+        },
+
+
+        // =====================================================
+        // EMERGENCY STOP
+        // =====================================================
+
+        emergencyStop: function () {
+
+            this.running =
+                false;
+
+
+            this.emergency =
+                true;
+
+
+            this.updateStatusLights();
+
+        },
+
+
+        // =====================================================
+        // RESET
+        // =====================================================
+
+        resetSystem: function () {
+
+            // Clear emergency condition.
+
+            this.emergency =
+                false;
+
+
+            // Stay stopped after reset.
+            // START is required to resume operation.
+
+            this.running =
+                false;
+
+
+            // Cancel any active processing operation.
+
+            this.processState =
+                'idle';
+
+
+            this.processElapsed =
+                0;
+
+
+            this.currentWorkpiece =
+                null;
+
+
+            // Return actuator to home position.
+
+            this.setActuatorDisplacement(
+                0
+            );
+
+
+            this.updateStatusLights();
+
+        },
+
+
+        // =====================================================
+        // STATUS LIGHTS
+        // =====================================================
+
+        updateStatusLights: function () {
+
+            let green =
+                0;
+
+
+            let yellow =
+                0;
+
+
+            let red =
+                0;
+
+
+            if (
+                this.emergency
+            ) {
+
+                red =
+                    1.5;
+
+            }
+
+            else if (
+                this.running
+            ) {
+
+                green =
+                    1.5;
+
+            }
+
+            else {
+
+                yellow =
+                    1.5;
+
+            }
+
+
+            this.setLightIntensity(
+                this.greenLight,
+                green
+            );
+
+
+            this.setLightIntensity(
+                this.yellowLight,
+                yellow
+            );
+
+
+            this.setLightIntensity(
+                this.redLight,
+                red
+            );
+
+        },
+
+
+        // =====================================================
+        // LIGHT EMISSIVE INTENSITY
+        // =====================================================
+
+        setLightIntensity: function (
+            light,
+            intensity
+        ) {
+
+            if (
+                !light
+            ) {
+
+                return;
+
+            }
+
+
+            light.setAttribute(
+                'material',
+                'emissiveIntensity',
+                intensity
+            );
+
+        },
+
+
+        // =====================================================
+        // MAIN FRAME UPDATE
         // =====================================================
 
         tick: function (
             time,
-            deltaTime
+            dt
         ) {
 
-            if (!deltaTime) {
-                return;
-            }
-
-
-            // -------------------------------------------------
-            // Emergency freezes everything
-            // -------------------------------------------------
-
             if (
-                this.emergencyActive
+                !dt
+                ||
+                dt >
+                200
             ) {
 
                 return;
@@ -308,735 +951,195 @@ AFRAME.registerComponent(
             }
 
 
-            // -------------------------------------------------
-            // User stop also freezes process
-            // -------------------------------------------------
+            // =================================================
+            // PROCESSING STATE
+            // =================================================
+            //
+            // The belt remains stopped while the actuator
+            // performs its operation.
+            // =================================================
 
             if (
-                this.userStopped
+                this.processState !==
+                'idle'
             ) {
 
-                return;
-
-            }
-
-
-            const dt =
-                deltaTime /
-                1000.0;
-
-
-            // -------------------------------------------------
-            // RUNNING
-            // -------------------------------------------------
-
-            if (
-                this.state ===
-                'RUNNING'
-            ) {
-
-                this.moveWorkpieces(
+                this.updateProcessing(
                     dt
                 );
 
 
-                this.checkProcessingStation();
+                return;
 
+            }
+
+
+            // =================================================
+            // STOPPED / EMERGENCY
+            // =================================================
+
+            if (
+                !this.running
+                ||
+                this.emergency
+            ) {
 
                 return;
 
             }
 
 
-            // -------------------------------------------------
-            // LOWERING
-            // -------------------------------------------------
+            // =================================================
+            // MASTER BELT MOVEMENT
+            // =================================================
 
-            if (
-                this.state ===
-                'LOWERING'
-            ) {
-
-                this.stateTime +=
-                    deltaTime;
-
-
-                const progress =
-                    Math.min(
-                        this.stateTime /
-                        this.data.lowerDuration,
-                        1
-                    );
-
-
-                this.moveActuator(
-                    progress,
-                    true
+            const distance =
+                this.data.speed
+                *
+                (
+                    dt / 1000
                 );
 
 
-                if (
-                    progress >= 1
-                ) {
+            // EVERY box receives this exact same displacement.
 
-                    this.state =
-                        'PROCESSING';
+            this.beltDistance +=
+                distance;
 
 
-                    this.stateTime =
-                        0;
-
-                }
+            this.updateAllWorkpieces();
 
 
-                return;
+            // =================================================
+            // PROCESS STATION DETECTION
+            // =================================================
 
-            }
+            this.checkProcessingStation();
 
+        }
 
-            // -------------------------------------------------
-            // PROCESSING
-            // -------------------------------------------------
-
-            if (
-                this.state ===
-                'PROCESSING'
-            ) {
-
-                this.stateTime +=
-                    deltaTime;
+    }
+);
 
 
-                if (
-                    this.stateTime >=
-                    this.data.processingDuration
-                ) {
 
-                    this.finishProcessing();
+// =============================================================
+// CONTROL BUTTON
+// =============================================================
 
+AFRAME.registerComponent(
+    'control-button',
+    {
 
-                    this.state =
-                        'RAISING';
+        // =====================================================
+        // SCHEMA
+        // =====================================================
 
+        schema: {
 
-                    this.stateTime =
-                        0;
-
-                }
-
-
-                return;
-
-            }
-
-
-            // -------------------------------------------------
-            // RAISING
-            // -------------------------------------------------
-
-            if (
-                this.state ===
-                'RAISING'
-            ) {
-
-                this.stateTime +=
-                    deltaTime;
-
-
-                const progress =
-                    Math.min(
-                        this.stateTime /
-                        this.data.raiseDuration,
-                        1
-                    );
-
-
-                this.moveActuator(
-                    progress,
-                    false
-                );
-
-
-                if (
-                    progress >= 1
-                ) {
-
-                    this.completeCycle();
-
-                }
-
+            action: {
+                type: 'string',
+                default: ''
             }
 
         },
 
 
         // =====================================================
-        // USER CONTROL
+        // INIT
         // =====================================================
 
-        handleControlAction:
-            function (action) {
+        init: function () {
 
-                switch (
-                    action
-                ) {
+            this.el.addEventListener(
+                'click',
+                () => {
 
-                    // -----------------------------------------
-                    // START
-                    // -----------------------------------------
+                    const industrialCell =
+                        document.querySelector(
+                            '#industrial-cell'
+                        );
 
-                    case 'start':
 
-                        if (
-                            this.emergencyActive
-                        ) {
+                    if (
+                        !industrialCell
+                    ) {
 
-                            return;
+                        return;
 
-                        }
+                    }
 
 
-                        this.userStopped =
-                            false;
+                    const controller =
+                        industrialCell
+                            .components[
+                                'industrial-cycle'
+                            ];
 
 
-                        this.updateIndicatorsForCurrentState();
+                    if (
+                        !controller
+                    ) {
 
+                        return;
 
-                        break;
+                    }
 
 
-                    // -----------------------------------------
-                    // STOP
-                    // -----------------------------------------
+                    const action =
+                        this.data.action
+                            .toLowerCase();
 
-                    case 'stop':
 
-                        if (
-                            this.emergencyActive
-                        ) {
+                    switch (
+                        action
+                    ) {
 
-                            return;
+                        case 'start':
 
-                        }
+                            controller
+                                .startSystem();
 
+                            break;
 
-                        this.userStopped =
-                            true;
 
+                        case 'stop':
 
-                        this.setStoppedIndicators();
+                            controller
+                                .stopSystem();
 
+                            break;
 
-                        break;
 
+                        case 'emergency':
 
-                    // -----------------------------------------
-                    // EMERGENCY
-                    // -----------------------------------------
+                            controller
+                                .emergencyStop();
 
-                    case 'emergency':
+                            break;
 
-                        this.emergencyActive =
-                            true;
 
+                        case 'reset':
 
-                        this.userStopped =
-                            true;
+                            controller
+                                .resetSystem();
 
+                            break;
 
-                        this.setEmergencyIndicators();
 
+                        default:
 
-                        break;
-
-
-                    // -----------------------------------------
-                    // RESET
-                    // -----------------------------------------
-
-                    case 'reset':
-
-                        if (
-                            !this.emergencyActive
-                        ) {
-
-                            return;
-
-                        }
-
-
-                        this.emergencyActive =
-                            false;
-
-
-                        // System remains stopped
-                        // after emergency reset.
-
-                        this.userStopped =
-                            true;
-
-
-                        this.setStoppedIndicators();
-
-
-                        break;
-
-                }
-
-            },
-
-
-        // =====================================================
-        // WORKPIECE MOTION
-        // =====================================================
-
-        moveWorkpieces:
-            function (dt) {
-
-                this.workpieces.forEach(
-                    (workpiece) => {
-
-                        const position =
-                            workpiece
-                                .el
-                                .object3D
-                                .position;
-
-
-                        workpiece.previousX =
-                            position.x;
-
-
-                        position.x +=
-                            this.data.speed *
-                            dt;
-
-
-                        // -------------------------------------
-                        // Conveyor loop
-                        // -------------------------------------
-
-                        if (
-                            position.x >
-                            this.data.maxX
-                        ) {
-
-                            position.x =
-                                this.data.minX;
-
-
-                            workpiece.previousX =
-                                this.data.minX;
-
-
-                            workpiece.processed =
-                                false;
-
-
-                            workpiece.el.setAttribute(
-                                'color',
-                                '#FF8C42'
+                            console.warn(
+                                'Unknown control action:',
+                                action
                             );
 
-                        }
-
-                    }
-                );
-
-            },
-
-
-        // =====================================================
-        // STATION DETECTION
-        // =====================================================
-
-        checkProcessingStation:
-            function () {
-
-                for (
-                    const workpiece
-                    of this.workpieces
-                ) {
-
-                    if (
-                        workpiece.processed
-                    ) {
-
-                        continue;
-
-                    }
-
-
-                    const position =
-                        workpiece
-                            .el
-                            .object3D
-                            .position;
-
-
-                    if (
-                        workpiece.previousX <
-                            this.data.stationX
-                        &&
-                        position.x >=
-                            this.data.stationX
-                    ) {
-
-                        position.x =
-                            this.data.stationX;
-
-
-                        this.startProcessing(
-                            workpiece
-                        );
-
-
-                        break;
-
                     }
 
                 }
+            );
 
-            },
-
-
-        // =====================================================
-        // START PROCESSING
-        // =====================================================
-
-        startProcessing:
-            function (
-                workpiece
-            ) {
-
-                this.activeWorkpiece =
-                    workpiece;
-
-
-                this.state =
-                    'LOWERING';
-
-
-                this.stateTime =
-                    0;
-
-
-                this.setLightIntensity(
-                    this.leftSensor,
-                    1.5
-                );
-
-
-                this.setProcessingIndicators();
-
-            },
-
-
-        // =====================================================
-        // ACTUATOR MOTION
-        // =====================================================
-
-        moveActuator:
-            function (
-                progress,
-                movingDown
-            ) {
-
-                let actuatorY;
-
-                let toolY;
-
-
-                if (
-                    movingDown
-                ) {
-
-                    actuatorY =
-                        this.lerp(
-                            this.actuatorTopY,
-                            this.actuatorBottomY,
-                            progress
-                        );
-
-
-                    toolY =
-                        this.lerp(
-                            this.toolTopY,
-                            this.toolBottomY,
-                            progress
-                        );
-
-                }
-
-                else {
-
-                    actuatorY =
-                        this.lerp(
-                            this.actuatorBottomY,
-                            this.actuatorTopY,
-                            progress
-                        );
-
-
-                    toolY =
-                        this.lerp(
-                            this.toolBottomY,
-                            this.toolTopY,
-                            progress
-                        );
-
-                }
-
-
-                this.actuator
-                    .object3D
-                    .position
-                    .y =
-                        actuatorY;
-
-
-                this.tool
-                    .object3D
-                    .position
-                    .y =
-                        toolY;
-
-            },
-
-
-        // =====================================================
-        // PROCESSING FINISHED
-        // =====================================================
-
-        finishProcessing:
-            function () {
-
-                if (
-                    !this.activeWorkpiece
-                ) {
-
-                    return;
-
-                }
-
-
-                this.activeWorkpiece.processed =
-                    true;
-
-
-                this.activeWorkpiece.el.setAttribute(
-                    'color',
-                    '#4CAF50'
-                );
-
-
-                this.setLightIntensity(
-                    this.rightSensor,
-                    1.5
-                );
-
-            },
-
-
-        // =====================================================
-        // CYCLE COMPLETE
-        // =====================================================
-
-        completeCycle:
-            function () {
-
-                this.state =
-                    'RUNNING';
-
-
-                this.stateTime =
-                    0;
-
-
-                this.activeWorkpiece =
-                    null;
-
-
-                this.setLightIntensity(
-                    this.leftSensor,
-                    0.25
-                );
-
-
-                this.setLightIntensity(
-                    this.rightSensor,
-                    0.25
-                );
-
-
-                this.setRunningIndicators();
-
-            },
-
-
-        // =====================================================
-        // STATE INDICATORS
-        // =====================================================
-
-        updateIndicatorsForCurrentState:
-            function () {
-
-                if (
-                    this.state ===
-                    'RUNNING'
-                ) {
-
-                    this.setRunningIndicators();
-
-                }
-
-                else {
-
-                    this.setProcessingIndicators();
-
-                }
-
-            },
-
-
-        setRunningIndicators:
-            function () {
-
-                this.setLightIntensity(
-                    this.greenLight,
-                    1.2
-                );
-
-
-                this.setLightIntensity(
-                    this.yellowLight,
-                    0
-                );
-
-
-                this.setLightIntensity(
-                    this.redLight,
-                    0
-                );
-
-            },
-
-
-        setProcessingIndicators:
-            function () {
-
-                this.setLightIntensity(
-                    this.greenLight,
-                    0
-                );
-
-
-                this.setLightIntensity(
-                    this.yellowLight,
-                    1.5
-                );
-
-
-                this.setLightIntensity(
-                    this.redLight,
-                    0
-                );
-
-            },
-
-
-        setStoppedIndicators:
-            function () {
-
-                this.setLightIntensity(
-                    this.greenLight,
-                    0
-                );
-
-
-                this.setLightIntensity(
-                    this.yellowLight,
-                    0.75
-                );
-
-
-                this.setLightIntensity(
-                    this.redLight,
-                    0
-                );
-
-            },
-
-
-        setEmergencyIndicators:
-            function () {
-
-                this.setLightIntensity(
-                    this.greenLight,
-                    0
-                );
-
-
-                this.setLightIntensity(
-                    this.yellowLight,
-                    0
-                );
-
-
-                this.setLightIntensity(
-                    this.redLight,
-                    2.0
-                );
-
-            },
-
-
-        // =====================================================
-        // LIGHT HELPER
-        // =====================================================
-
-        setLightIntensity:
-            function (
-                element,
-                intensity
-            ) {
-
-                if (!element) {
-                    return;
-                }
-
-
-                element.setAttribute(
-                    'material',
-                    'emissiveIntensity',
-                    intensity
-                );
-
-            },
-
-
-        // =====================================================
-        // INTERPOLATION
-        // =====================================================
-
-        lerp:
-            function (
-                start,
-                end,
-                progress
-            ) {
-
-                return (
-                    start +
-                    (
-                        end -
-                        start
-                    ) *
-                    progress
-                );
-
-            }
+        }
 
     }
 );

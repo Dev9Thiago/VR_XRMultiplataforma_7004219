@@ -3,15 +3,15 @@
 // =============================================================
 //
 // This component:
-// 1. Detects when the scene enters AR.
-// 2. Creates a WebXR hit-test source.
-// 3. Shows a reticle on detected surfaces.
-// 4. Places the industrial cell when the user taps.
-// 5. Restores the normal scene when AR ends.
+// 1. Detects AR mode reliably.
+// 2. Makes the scene transparent so camera passthrough is visible.
+// 3. Hides the virtual floor while in AR.
+// 4. Creates a WebXR hit-test source.
+// 5. Displays a reticle on detected real-world surfaces.
+// 6. Places the industrial cell on tap.
+// 7. Restores the normal desktop/VR scene when AR exits.
 //
-// IMPORTANT:
-// Hit testing is initialized ONLY in AR.
-// It is never requested or used during VR.
+// VR behavior is intentionally left untouched.
 // =============================================================
 
 
@@ -20,7 +20,7 @@ AFRAME.registerComponent(
     {
 
         // =====================================================
-        // INITIALIZATION
+        // INIT
         // =====================================================
 
         init: function () {
@@ -32,6 +32,12 @@ AFRAME.registerComponent(
             this.cell =
                 document.querySelector(
                     '#industrial-cell'
+                );
+
+
+            this.floor =
+                document.querySelector(
+                    '#virtual-floor'
                 );
 
 
@@ -94,76 +100,69 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // NORMAL SCENE TRANSFORM
+            // SAVE NORMAL TRANSFORM
             // =================================================
 
             this.normalPosition =
-                this.cell.object3D
+                this.cell
+                    .object3D
                     .position
                     .clone();
 
 
             this.normalQuaternion =
-                this.cell.object3D
+                this.cell
+                    .object3D
                     .quaternion
                     .clone();
 
 
             this.normalScale =
-                this.cell.object3D
+                this.cell
+                    .object3D
                     .scale
                     .clone();
 
 
             // =================================================
-            // XR SESSION START
+            // ENTER XR
             // =================================================
 
-            this.sceneEl.renderer.xr.addEventListener(
-                'sessionstart',
-                async () => {
+            this.sceneEl.addEventListener(
+                'enter-vr',
+                () => {
 
-                    const session =
-                        this.sceneEl
-                            .renderer
-                            .xr
-                            .getSession();
+                    // A-Frame may not have updated ar-mode
+                    // immediately when enter-vr fires.
+                    // Small delay makes the state reliable.
 
+                    setTimeout(
+                        () => {
 
-                    if (!session) {
+                            if (
+                                this.sceneEl.is(
+                                    'ar-mode'
+                                )
+                            ) {
 
-                        return;
+                                this.startAR();
 
-                    }
+                            }
 
-
-                    // -----------------------------------------
-                    // IMPORTANT
-                    // Only initialize placement in AR mode.
-                    // -----------------------------------------
-
-                    if (
-                        this.sceneEl.is(
-                            'ar-mode'
-                        )
-                    ) {
-
-                        await this.startAR(
-                            session
-                        );
-
-                    }
+                        },
+                        120
+                    );
 
                 }
             );
 
 
             // =================================================
-            // XR SESSION END
+            // EXIT XR
             // =================================================
 
-            this.sceneEl.renderer.xr.addEventListener(
-                'sessionend',
+            this.sceneEl.addEventListener(
+                'exit-vr',
                 () => {
 
                     if (
@@ -184,12 +183,41 @@ AFRAME.registerComponent(
         // START AR
         // =====================================================
 
-        startAR: async function (
-            session
-        ) {
+        startAR: async function () {
+
+            if (
+                this.arActive
+            ) {
+
+                return;
+
+            }
+
+
+            const session =
+                this.sceneEl.xrSession
+                ||
+                this.sceneEl
+                    .renderer
+                    .xr
+                    .getSession();
+
+
+            if (
+                !session
+            ) {
+
+                console.error(
+                    'AR session was not available.'
+                );
+
+                return;
+
+            }
+
 
             console.log(
-                'Starting AR placement mode...'
+                'AR mode detected.'
             );
 
 
@@ -210,7 +238,52 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // AR SCENE SETUP
+            // CAMERA PASSTHROUGH
+            // =================================================
+            //
+            // Remove opaque scene background.
+            // A transparent WebGL backbuffer allows the
+            // real camera image to show behind the scene.
+            // =================================================
+
+            this.sceneEl.removeAttribute(
+                'background'
+            );
+
+
+            if (
+                this.sceneEl.renderer
+            ) {
+
+                this.sceneEl
+                    .renderer
+                    .setClearColor(
+                        0x000000,
+                        0
+                    );
+
+            }
+
+
+            // =================================================
+            // HIDE VIRTUAL FLOOR
+            // =================================================
+            //
+            // The desktop floor must not cover the camera view.
+            // =================================================
+
+            if (
+                this.floor
+            ) {
+
+                this.floor.object3D.visible =
+                    false;
+
+            }
+
+
+            // =================================================
+            // HIDE MODEL UNTIL PLACEMENT
             // =================================================
 
             this.cell.object3D.visible =
@@ -272,12 +345,13 @@ AFRAME.registerComponent(
 
                 if (
                     typeof session
-                        .requestHitTestSource !==
+                        .requestHitTestSource
+                    !==
                     'function'
                 ) {
 
                     throw new Error(
-                        'requestHitTestSource is not supported.'
+                        'WebXR hit-test API is unavailable.'
                     );
 
                 }
@@ -294,7 +368,7 @@ AFRAME.registerComponent(
 
 
                 console.log(
-                    'AR hit-test source created.'
+                    'AR hit-test initialized successfully.'
                 );
 
 
@@ -306,7 +380,8 @@ AFRAME.registerComponent(
                     () => {
 
                         if (
-                            this.hasHit &&
+                            this.hasHit
+                            &&
                             !this.placed
                         ) {
 
@@ -329,7 +404,7 @@ AFRAME.registerComponent(
             ) {
 
                 console.error(
-                    'AR hit-test initialization error:',
+                    'AR initialization failed:',
                     error
                 );
 
@@ -338,27 +413,24 @@ AFRAME.registerComponent(
                     'Surface detection could not be initialized.'
                 );
 
-
-                // Do NOT hide the model forever if hit-test fails.
-
-                this.cell.object3D.visible =
-                    true;
-
             }
 
         },
 
 
         // =====================================================
-        // FRAME LOOP
+        // AR FRAME UPDATE
         // =====================================================
 
         tick: function () {
 
             if (
-                !this.arActive ||
-                this.placed ||
-                !this.hitTestSource ||
+                !this.arActive
+                ||
+                this.placed
+                ||
+                !this.hitTestSource
+                ||
                 !this.referenceSpace
             ) {
 
@@ -367,11 +439,9 @@ AFRAME.registerComponent(
             }
 
 
+            // A-Frame exposes the active XRFrame here.
             const frame =
-                this.sceneEl
-                    .renderer
-                    .xr
-                    .getFrame();
+                this.sceneEl.frame;
 
 
             if (
@@ -400,7 +470,7 @@ AFRAME.registerComponent(
             ) {
 
                 console.error(
-                    'getHitTestResults error:',
+                    'Hit-test frame error:',
                     error
                 );
 
@@ -442,7 +512,7 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // SURFACE FOUND
+            // VALID HIT
             // =================================================
 
             const pose =
@@ -501,20 +571,26 @@ AFRAME.registerComponent(
                     true;
 
 
-                this.reticle.object3D.position.copy(
-                    this.lastHitPosition
-                );
+                this.reticle
+                    .object3D
+                    .position
+                    .copy(
+                        this.lastHitPosition
+                    );
 
 
-                this.reticle.object3D.quaternion.copy(
-                    this.lastHitQuaternion
-                );
+                this.reticle
+                    .object3D
+                    .quaternion
+                    .copy(
+                        this.lastHitQuaternion
+                    );
 
             }
 
 
             this.setInstruction(
-                'Surface detected - tap to place the cell.'
+                'Surface detected - tap to place the industrial cell.'
             );
 
         },
@@ -527,7 +603,8 @@ AFRAME.registerComponent(
         placeCell: function () {
 
             if (
-                !this.hasHit ||
+                !this.hasHit
+                ||
                 this.placed
             ) {
 
@@ -540,37 +617,40 @@ AFRAME.registerComponent(
             // POSITION
             // =================================================
 
-            this.cell.object3D.position.copy(
-                this.lastHitPosition
-            );
+            this.cell
+                .object3D
+                .position
+                .copy(
+                    this.lastHitPosition
+                );
 
 
             // =================================================
-            // SCALE
-            // =================================================
-            //
-            // AR needs a much smaller version than desktop.
+            // KEEP MODEL UPRIGHT
             // =================================================
 
-            this.cell.object3D.scale.set(
-                0.35,
-                0.35,
-                0.35
-            );
+            this.cell
+                .object3D
+                .rotation
+                .set(
+                    0,
+                    0,
+                    0
+                );
 
 
             // =================================================
-            // ROTATION
-            // =================================================
-            //
-            // Keep the industrial cell upright.
+            // AR SCALE
             // =================================================
 
-            this.cell.object3D.rotation.set(
-                0,
-                0,
-                0
-            );
+            this.cell
+                .object3D
+                .scale
+                .set(
+                    0.30,
+                    0.30,
+                    0.30
+                );
 
 
             this.cell.object3D.visible =
@@ -597,7 +677,7 @@ AFRAME.registerComponent(
 
 
             console.log(
-                'Industrial cell placed in AR.'
+                'Industrial cell placed.'
             );
 
         },
@@ -630,16 +710,17 @@ AFRAME.registerComponent(
         stopAR: function () {
 
             console.log(
-                'Stopping AR placement mode...'
+                'Leaving AR mode.'
             );
 
 
             // =================================================
-            // REMOVE SELECT EVENT
+            // REMOVE SELECT LISTENER
             // =================================================
 
             if (
-                this.session &&
+                this.session
+                &&
                 this.onSelect
             ) {
 
@@ -670,7 +751,7 @@ AFRAME.registerComponent(
                 ) {
 
                     console.warn(
-                        'Hit-test source cancellation warning:',
+                        'Hit-test cleanup warning:',
                         error
                     );
 
@@ -680,7 +761,7 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // RESET AR STATE
+            // RESET XR STATE
             // =================================================
 
             this.session =
@@ -716,7 +797,7 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // HIDE AR UI
+            // AR UI
             // =================================================
 
             if (
@@ -740,26 +821,60 @@ AFRAME.registerComponent(
 
 
             // =================================================
-            // RESTORE NORMAL SCENE
+            // RESTORE FLOOR
+            // =================================================
+
+            if (
+                this.floor
+            ) {
+
+                this.floor.object3D.visible =
+                    true;
+
+            }
+
+
+            // =================================================
+            // RESTORE SCENE BACKGROUND
+            // =================================================
+
+            this.sceneEl.setAttribute(
+                'background',
+                'color',
+                '#ECECEC'
+            );
+
+
+            // =================================================
+            // RESTORE INDUSTRIAL CELL
             // =================================================
 
             this.cell.object3D.visible =
                 true;
 
 
-            this.cell.object3D.position.copy(
-                this.normalPosition
-            );
+            this.cell
+                .object3D
+                .position
+                .copy(
+                    this.normalPosition
+                );
 
 
-            this.cell.object3D.quaternion.copy(
-                this.normalQuaternion
-            );
+            this.cell
+                .object3D
+                .quaternion
+                .copy(
+                    this.normalQuaternion
+                );
 
 
-            this.cell.object3D.scale.copy(
-                this.normalScale
-            );
+            this.cell
+                .object3D
+                .scale
+                .copy(
+                    this.normalScale
+                );
 
         }
 
