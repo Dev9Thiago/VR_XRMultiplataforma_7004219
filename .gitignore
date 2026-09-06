@@ -1,0 +1,17 @@
+# Blender source / backup files
+*.blend
+*.blend1
+*.blend2
+
+# Heavy CAD source files
+*.stl
+*.step
+*.stp
+*.iges
+*.igs
+*.sldprt
+*.STL
+*.SLDPRT
+
+# Temporary Blender autosaves
+*.blend@
